@@ -22,10 +22,24 @@ function Login() {
                 mot_de_passe: password
             });
 
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            navigate('/dashboard');
+            console.log('Réponse login:', response.data);
+            
+            if (response.data.token) {
+                // Stocker le token
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                
+                // Vérifier que le token est bien stocké
+                const storedToken = localStorage.getItem('token');
+                console.log('Token stocké:', storedToken ? 'Oui' : 'Non');
+                
+                // Rediriger vers le dashboard
+                navigate('/dashboard');
+            } else {
+                setError('Token non reçu');
+            }
         } catch (err) {
+            console.error('Erreur login:', err);
             setError(err.response?.data?.error || 'Erreur de connexion');
         } finally {
             setLoading(false);
@@ -51,7 +65,7 @@ function Login() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            placeholder="votre@email.com"
+                            placeholder="client@test.com"
                         />
                     </div>
                     <div className="form-group">
@@ -64,7 +78,7 @@ function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            placeholder="••••••"
+                            placeholder="123456"
                         />
                     </div>
                     <button type="submit" disabled={loading} className="w-100">

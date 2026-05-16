@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCar, faCalendarCheck, faBell, faCreditCard, faArrowRight, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCar, faCalendarCheck, faBell, faCreditCard, faArrowRight, faSignInAlt, faTachometerAlt } from '@fortawesome/free-solid-svg-icons';
 
 function Home() {
+    const isLoggedIn = !!localStorage.getItem('token');
+
     return (
         <div className="container">
             <div className="hero">
@@ -15,17 +17,28 @@ function Home() {
                     Gérez vos véhicules, prenez rendez-vous et suivez vos interventions en ligne
                 </p>
                 <div className="hero-buttons">
-                    <Link to="/register">
-                        <button>
-                            Commencer <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: '10px' }} />
-                        </button>
-                    </Link>
-                    <Link to="/login">
-                        <button className="btn-outline">
-                            <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '10px' }} />
-                            Se connecter
-                        </button>
-                    </Link>
+                    {isLoggedIn ? (
+                        <Link to="/dashboard">
+                            <button>
+                                <FontAwesomeIcon icon={faTachometerAlt} style={{ marginRight: '10px' }} />
+                                Accéder à mon tableau de bord
+                            </button>
+                        </Link>
+                    ) : (
+                        <>
+                            <Link to="/register">
+                                <button>
+                                    Commencer <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: '10px' }} />
+                                </button>
+                            </Link>
+                            <Link to="/login">
+                                <button className="btn-outline">
+                                    <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '10px' }} />
+                                    Se connecter
+                                </button>
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
 
