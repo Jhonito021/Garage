@@ -10,21 +10,18 @@ function Navbar() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const isLoggedIn = !!localStorage.getItem('user');
     
-    // Ne pas afficher la navbar sur les pages admin
-    if (location.pathname.startsWith('/admin')) {
+    // Ne pas afficher la navbar sur les pages admin ET technicien
+    if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/technicien')) {
         return null;
     }
 
     const handleLogout = async () => {
         try {
-            // Appeler la route logout du backend
             await api.post('/auth/logout');
         } catch (err) {
             console.error('Erreur déconnexion:', err);
         } finally {
-            // Supprimer l'utilisateur du localStorage
             localStorage.removeItem('user');
-            // Rediriger vers la page d'accueil
             navigate('/');
         }
     };
@@ -73,7 +70,7 @@ function Navbar() {
                             Déconnexion
                         </button>
                     </>
-                ) :     (
+                ) : (
                     <div className="flex gap-10">
                         <Link to="/login">
                             <button className="btn-outline">

@@ -4,6 +4,7 @@ import './App.css';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
+import TechnicienRoute from './components/TechnicienRoute';
 
 // Pages client
 import Home from './pages/client/Home';
@@ -26,6 +27,11 @@ import FacturesGestion from './pages/admin/FacturesGestion';
 import Clients from './pages/admin/Clients';
 import Vidanges from './pages/admin/Vidanges';
 import Parametres from './pages/admin/Parametres';
+
+// Pages technicien
+import TechnicienLogin from './pages/technicien/TechnicienLogin';
+import TechnicienDashboard from './pages/technicien/TechnicienDashboard';
+import TechnicienInterventions from './pages/technicien/TechnicienInterventions';
 
 import Acceuil from './pages/Home';
 
@@ -55,6 +61,14 @@ function App() {
                 <Route path="/admin/clients" element={<AdminRoute><Clients /></AdminRoute>} />
                 <Route path="/admin/vidanges" element={<AdminRoute><Vidanges /></AdminRoute>} />
                 <Route path="/admin/parametres" element={<AdminRoute><Parametres /></AdminRoute>} />
+
+                {/* Routes technicien (technicien uniquement) */}
+                <Route path="/technicien/login" element={<TechnicienLogin />} />
+                <Route path="/technicien" element={<TechnicienRoute><TechnicienDashboard /></TechnicienRoute>} />
+                <Route path="/technicien/interventions" element={<TechnicienRoute><TechnicienInterventions /></TechnicienRoute>} />
+
+                {/* Routes admin pour interventions (admin et technicien) */}
+                <Route path="/admin/interventions" element={<PrivateRoute><Interventions /></PrivateRoute>} />
             </Routes>
         </Router>
     );

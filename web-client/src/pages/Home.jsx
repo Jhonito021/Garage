@@ -9,8 +9,10 @@ function Home() {
 
     // Si déjà connecté, rediriger vers son espace
     if (isLoggedIn) {
-        if (user.role === 'admin' || user.role === 'technicien') {
+        if (user.role === 'admin') {
             window.location.href = '/admin';
+        } else if (user.role === 'technicien') {
+            window.location.href = '/technicien';
         } else {
             window.location.href = '/dashboard';
         }
@@ -61,7 +63,7 @@ function Home() {
                     <p className="text-light">
                         Consultez vos interventions, pointez vos opérations
                     </p>
-                    <Link to="/admin/login">
+                    <Link to="technicien/login">
                         <button style={{ marginTop: '20px' }}>
                             <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '10px' }} />
                             Accès technicien

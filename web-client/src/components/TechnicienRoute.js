@@ -6,7 +6,7 @@ function TechnicienRoute({ children }) {
     const isTechnicien = user.role === 'technicien';
     
     if (!isTechnicien) {
-        return <Navigate to="/admin" />;
+        return <Navigate to="/technicien/login" />;
     }
     
     return children;
