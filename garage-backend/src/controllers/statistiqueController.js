@@ -1,13 +1,7 @@
 const db = require('../models/db');
 
-// Tableau de bord admin
 const getDashboard = async (req, res) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Accès réservé' });
-    }
-
     try {
-        // Chiffre d'affaires du mois
         const [ca] = await db.query(`
             SELECT SUM(montant_total) as total 
             FROM factures 
@@ -16,31 +10,24 @@ const getDashboard = async (req, res) => {
             AND YEAR(date_emission) = YEAR(CURDATE())
         `);
         
-        // Interventions par technicien (mois)
         const [interventionsTech] = await db.query(`
             SELECT u.id, u.nom, u.prenom, COUNT(i.id) as nb_interventions
             FROM interventions i
             JOIN utilisateurs u ON i.technicien_id = u.id
             WHERE MONTH(i.date_debut) = MONTH(CURDATE())
-            AND YEAR(i.date_debut) = YEAR(CURDATE())
             GROUP BY i.technicien_id
         `);
         
-        // Nombre de clients
         const [clients] = await db.query('SELECT COUNT(*) as total FROM utilisateurs WHERE role = "client"');
         
-        // Nombre d'interventions ce mois
         const [interventions] = await db.query(`
             SELECT COUNT(*) as total FROM interventions 
             WHERE MONTH(date_debut) = MONTH(CURDATE())
-            AND YEAR(date_debut) = YEAR(CURDATE())
         `);
         
-        // Nombre de rendez-vous ce mois
         const [rdvs] = await db.query(`
             SELECT COUNT(*) as total FROM rdv 
             WHERE MONTH(date_heure) = MONTH(CURDATE())
-            AND YEAR(date_heure) = YEAR(CURDATE())
         `);
         
         res.json({
@@ -55,12 +42,7 @@ const getDashboard = async (req, res) => {
     }
 };
 
-// Statistiques des vidanges par mois
 const getVidangesStats = async (req, res) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Accès réservé' });
-    }
-
     try {
         const [rows] = await db.query(`
             SELECT DATE_FORMAT(date_vidange, '%Y-%m') as mois, 
@@ -79,12 +61,7 @@ const getVidangesStats = async (req, res) => {
     }
 };
 
-// Clients à échéance de vidange
 const getClientsEcheanceVidange = async (req, res) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Accès réservé' });
-    }
-
     try {
         const [config] = await db.query("SELECT valeur FROM configurations WHERE cle = 'intervalle_vidange_defaut'");
         const intervalle = config[0] ? parseInt(config[0].valeur) : 8000;

@@ -1,10 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCar, faCalendarCheck, faBell, faCreditCard, faArrowRight, faSignInAlt, faTachometerAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCar, faWrench, faUser, faArrowRight, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
 
 function Home() {
-    const isLoggedIn = !!localStorage.getItem('token');
+    const isLoggedIn = !!localStorage.getItem('user');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    // Si déjà connecté, rediriger vers son espace
+    if (isLoggedIn) {
+        if (user.role === 'admin' || user.role === 'technicien') {
+            window.location.href = '/admin';
+        } else {
+            window.location.href = '/dashboard';
+        }
+        return null;
+    }
 
     return (
         <div className="container">
@@ -16,60 +27,63 @@ function Home() {
                 <p className="hero-subtitle">
                     Gérez vos véhicules, prenez rendez-vous et suivez vos interventions en ligne
                 </p>
-                <div className="hero-buttons">
-                    {isLoggedIn ? (
-                        <Link to="/dashboard">
-                            <button>
-                                <FontAwesomeIcon icon={faTachometerAlt} style={{ marginRight: '10px' }} />
-                                Accéder à mon tableau de bord
-                            </button>
-                        </Link>
-                    ) : (
-                        <>
-                            <Link to="/register">
-                                <button>
-                                    Commencer <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: '10px' }} />
-                                </button>
-                            </Link>
-                            <Link to="/login">
-                                <button className="btn-outline">
-                                    <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '10px' }} />
-                                    Se connecter
-                                </button>
-                            </Link>
-                        </>
-                    )}
-                </div>
             </div>
 
-            <div className="grid-4">
+            <div className="grid-3" style={{ marginTop: '60px' }}>
+                {/* Carte Client */}
                 <div className="card text-center">
                     <div style={{ fontSize: '3rem', color: 'var(--secondary-color)' }}>
-                        <FontAwesomeIcon icon={faCalendarCheck} />
+                        <FontAwesomeIcon icon={faUser} />
                     </div>
-                    <h3>Rendez-vous en ligne</h3>
-                    <p className="text-light">Prenez rendez-vous facilement 24h/24</p>
+                    <h3>Espace Client</h3>
+                    <p className="text-light">
+                        Gérez vos véhicules, prenez rendez-vous et suivez vos réparations
+                    </p>
+                <Link to="/login">
+                        <button style={{ marginTop: '20px' }}>
+                            <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '10px' }} />
+                            Se connecter
+                        </button>
+                    </Link>
+                    <Link to="/register">
+                        <button className="btn-outline" style={{ marginTop: '10px' }}>
+                            Créer un compte
+                        </button>
+                    </Link>
                 </div>
+
+                {/* Carte Technicien */}
+                <div className="card text-center">
+                    <div style={{ fontSize: '3rem', color: 'var(--secondary-color)' }}>
+                        <FontAwesomeIcon icon={faWrench} />
+                    </div>
+                    <h3>Espace Technicien</h3>
+                    <p className="text-light">
+                        Consultez vos interventions, pointez vos opérations
+                    </p>
+                    <Link to="/admin/login">
+                        <button style={{ marginTop: '20px' }}>
+                            <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '10px' }} />
+                            Accès technicien
+                        </button>
+                    </Link>
+                </div>
+
+                {/* Carte Admin */}
                 <div className="card text-center">
                     <div style={{ fontSize: '3rem', color: 'var(--secondary-color)' }}>
                         <FontAwesomeIcon icon={faCar} />
                     </div>
-                    <h3>Gestion des véhicules</h3>
-                    <p className="text-light">Ajoutez et suivez tous vos véhicules</p>
-                </div>
-                <div className="card text-center">
-                    <div style={{ fontSize: '3rem', color: 'var(--secondary-color)' }}>
-                        <FontAwesomeIcon icon={faBell} />
-                    </div>
-                    <h3>Rappels vidange</h3>
-                    <p className="text-light">Recevez des notifications automatiques</p>
-                </div>
-                <div className="card text-center">
-                    <div style={{ fontSize: '3rem', color: 'var(--secondary-color)' }}>
-                        <FontAwesomeIcon icon={faCreditCard} />
-                    </div>
-                    <h3>Paiement en ligne</h3>
-                    <p className="text-light">Payez vos factures en toute sécurité</p>
+                    <h3>Espace Garage</h3>
+                    <p className="text-light">
+                        Gestion complète du garage, planning, stocks, factures
+                    </p>
+                    <Link to="/admin/login">
+                        <button style={{ marginTop: '20px' }}>
+                            <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '10px' }} />
+                            Accès administration
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>

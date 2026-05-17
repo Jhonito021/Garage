@@ -1,17 +1,32 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCar, faTachometerAlt, faCalendarAlt, faHistory, faFileInvoice, faSignOutAlt, faUser, faPlus, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import api from '../services/api';
 
 function Navbar() {
     const navigate = useNavigate();
+    const location = useLocation();
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const isLoggedIn = !!localStorage.getItem('token');
+    const isLoggedIn = !!localStorage.getItem('user');
+    
+    // Ne pas afficher la navbar sur les pages admin
+    if (location.pathname.startsWith('/admin')) {
+        return null;
+    }
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
+    const handleLogout = async () => {
+        try {
+            // Appeler la route logout du backend
+            await api.post('/auth/logout');
+        } catch (err) {
+            console.error('Erreur déconnexion:', err);
+        } finally {
+            // Supprimer l'utilisateur du localStorage
+            localStorage.removeItem('user');
+            // Rediriger vers la page d'accueil
+            navigate('/');
+        }
     };
 
     return (
@@ -58,7 +73,7 @@ function Navbar() {
                             Déconnexion
                         </button>
                     </>
-                ) : (
+                ) :     (
                     <div className="flex gap-10">
                         <Link to="/login">
                             <button className="btn-outline">

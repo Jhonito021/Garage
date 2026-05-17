@@ -1,47 +1,52 @@
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const db = require('../models/db');
 
-// Inscription d'un nouvel utilisateur
 const register = async (req, res) => {
     const { email, mot_de_passe, nom, prenom, telephone, adresse } = req.body;
 
-    // Vérifier les champs obligatoires
     if (!email || !mot_de_passe || !nom || !prenom) {
-        return res.status(400).json({ 
-            error: 'Champs manquants. email, mot_de_passe, nom et prenom sont requis.' 
-        });
+        return res.status(400).json({ error: 'Champs manquants' });
     }
 
     try {
-        // Vérifier si l'email existe déjà
-        const [existing] = await db.query('SELECT id FROM utilisateurs WHERE email = ?', [email]);
-        if (existing.length > 0) {
-            return res.status(400).json({ error: 'Cet email est déjà utilisé' });
-        }
-
-        // Hacher le mot de passe
         const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
-        
-        // Insérer l'utilisateur
         const [result] = await db.query(
-            `INSERT INTO utilisateurs 
-            (email, mot_de_passe, nom, prenom, telephone, adresse, role) 
-            VALUES (?, ?, ?, ?, ?, ?, 'client')`,
-            [email, hashedPassword, nom, prenom, telephone || null, adresse || null]
+            'INSERT INTO utilisateurs (email, mot_de_passe, nom, prenom, telephone, adresse, role) VALUES (?, ?, ?, ?, ?, ?, "client")',
+            [email, hashedPassword, nom, prenom, telephone, adresse]
         );
         
+        // Créer la session après inscription
+        req.session.userId = result.insertId;
+        req.session.userEmail = email;
+        req.session.userRole = 'client';
+        
+        req.session.save((err) => {
+            if (err) {
+                console.error('Erreur sauvegarde session:', err);
+            }
+        });
+        
         res.status(201).json({ 
-            message: 'Compte créé avec succès', 
-            id: result.insertId 
+            message: 'Compte créé', 
+            id: result.insertId,
+            user: {
+                id: result.insertId,
+                email: email,
+                nom: nom,
+                prenom: prenom,
+                role: 'client'
+            }
         });
     } catch (err) {
-        console.error('Erreur inscription:', err);
-        res.status(500).json({ error: 'Erreur serveur: ' + err.message });
+        console.error('Erreur register:', err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            res.status(400).json({ error: 'Email déjà utilisé' });
+        } else {
+            res.status(500).json({ error: 'Erreur serveur' });
+        }
     }
 };
 
-// Connexion d'un utilisateur
 const login = async (req, res) => {
     const { email, mot_de_passe } = req.body;
 
@@ -57,23 +62,27 @@ const login = async (req, res) => {
         }
 
         const user = rows[0];
-        
-        // Vérifier le mot de passe
         const valid = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
         
         if (!valid) {
             return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
         }
 
-        // Générer le token JWT
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        // Créer la session
+        req.session.userId = user.id;
+        req.session.userEmail = user.email;
+        req.session.userRole = user.role;
+        
+        req.session.save((err) => {
+            if (err) {
+                console.error('Erreur sauvegarde session:', err);
+            }
+        });
+
+        console.log('Session créée - userId:', req.session.userId);
+        console.log('Session ID:', req.sessionID);
 
         res.json({
-            token,
             user: {
                 id: user.id,
                 email: user.email,
@@ -81,22 +90,37 @@ const login = async (req, res) => {
                 prenom: user.prenom,
                 role: user.role,
                 telephone: user.telephone,
-                adresse: user.adresse,
-                notifications_acceptees: user.notifications_acceptees
+                adresse: user.adresse
             }
         });
     } catch (err) {
-        console.error('Erreur connexion:', err);
+        console.error('Erreur login:', err);
         res.status(500).json({ error: 'Erreur serveur: ' + err.message });
     }
 };
 
-// Récupérer les informations de l'utilisateur connecté
+const logout = (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Erreur destruction session:', err);
+            return res.status(500).json({ error: 'Erreur lors de la déconnexion' });
+        }
+        res.clearCookie('connect.sid');
+        res.json({ message: 'Déconnecté' });
+    });
+};
+
 const getMe = async (req, res) => {
+    console.log('getMe - Session userId:', req.session.userId);
+    
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+    
     try {
         const [rows] = await db.query(
-            'SELECT id, email, nom, prenom, telephone, adresse, role, notifications_acceptees FROM utilisateurs WHERE id = ?',
-            [req.user.id]
+            'SELECT id, email, nom, prenom, telephone, adresse, role FROM utilisateurs WHERE id = ?', 
+            [req.session.userId]
         );
         
         if (rows.length === 0) {
@@ -105,8 +129,9 @@ const getMe = async (req, res) => {
         
         res.json(rows[0]);
     } catch (err) {
+        console.error('Erreur getMe:', err);
         res.status(500).json({ error: err.message });
     }
 };
 
-module.exports = { register, login, getMe };
+module.exports = { register, login, logout, getMe };

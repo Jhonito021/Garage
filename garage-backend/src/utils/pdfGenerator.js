@@ -18,19 +18,16 @@ const generateFacturePDF = async (facture) => {
         doc.text(`Date : ${facture.date_emission}`);
         doc.moveDown();
         doc.text(`Client : ${facture.nom} ${facture.prenom}`);
-        doc.text(`Adresse : ${facture.adresse}`);
+        doc.text(`Adresse : ${facture.adresse || 'Non renseignée'}`);
         doc.moveDown();
         doc.text(`Véhicule : ${facture.immatriculation}`);
-        doc.text(`Description : ${facture.description}`);
+        doc.text(`Description : ${facture.description || 'Intervention'}`);
         doc.moveDown();
         doc.fontSize(14).text(`Montant total : ${facture.montant_total} €`, { align: 'right' });
         
         doc.end();
         
-        stream.on('finish', () => {
-            resolve(filepath);
-        });
-        
+        stream.on('finish', () => resolve(filepath));
         stream.on('error', reject);
     });
 };
@@ -53,16 +50,13 @@ const generateDevisPDF = async (devis) => {
         doc.text(`Client : ${devis.nom} ${devis.prenom}`);
         doc.moveDown();
         doc.text(`Véhicule : ${devis.immatriculation}`);
-        doc.text(`Description : ${devis.description}`);
+        doc.text(`Description : ${devis.description || 'Prestation'}`);
         doc.moveDown();
         doc.fontSize(14).text(`Montant estimé : ${devis.montant} €`, { align: 'right' });
         
         doc.end();
         
-        stream.on('finish', () => {
-            resolve(filepath);
-        });
-        
+        stream.on('finish', () => resolve(filepath));
         stream.on('error', reject);
     });
 };
