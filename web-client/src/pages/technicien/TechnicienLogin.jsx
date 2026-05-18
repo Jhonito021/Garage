@@ -71,7 +71,7 @@ function TechnicienLogin() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            placeholder="technicien@garage.com"
+                            placeholder=""
                         />
                     </div>
                     <div className="form-group">
@@ -84,7 +84,7 @@ function TechnicienLogin() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            placeholder="technicien123"
+                            placeholder="Votre mot de passe"
                         />
                     </div>
                     <button type="submit" disabled={loading} className="w-100">

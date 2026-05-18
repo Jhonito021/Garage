@@ -62,7 +62,7 @@ function Login() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            placeholder="client@test.com"
+                            placeholder=""
                         />
                     </div>
                     <div className="form-group">
@@ -75,7 +75,7 @@ function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            placeholder="123456"
+                            placeholder="Votre mot de passe"
                         />
                     </div>
                     <button type="submit" disabled={loading} className="w-100">

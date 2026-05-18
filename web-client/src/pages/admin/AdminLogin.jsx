@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faSignInAlt, faWrench } from '@fortawesome/free-solid-svg-icons';
 import api from '../../services/api';
@@ -70,7 +70,7 @@ function AdminLogin() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            placeholder="admin@garage.com"
+                            placeholder=""
                         />
                     </div>
                     <div className="form-group">
@@ -83,13 +83,18 @@ function AdminLogin() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            placeholder="admin123"
+                            placeholder="Votre mot de passe"
                         />
                     </div>
                     <button type="submit" disabled={loading} className="w-100">
                         {loading ? 'Connexion...' : 'Se connecter'}
                     </button>
                 </form>
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <Link to="/technicien/login" className="text-light">
+                        ← Accès administration
+                    </Link>
+                </div>
             </div>
         </div>
     );
