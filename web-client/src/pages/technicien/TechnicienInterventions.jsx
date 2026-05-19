@@ -12,6 +12,7 @@ function TechnicienInterventions() {
         const fetchInterventions = async () => {
             try {
                 const res = await api.get('/interventions/technicien');
+                console.log('Mes interventions:', res.data);
                 setInterventions(res.data);
             } catch (err) {
                 console.error('Erreur:', err);
@@ -28,8 +29,10 @@ function TechnicienInterventions() {
             setInterventions(interventions.map(i => 
                 i.id === id ? { ...i, statut: 'en_cours', date_debut: new Date().toISOString() } : i
             ));
+            alert('Intervention démarrée');
         } catch (err) {
             console.error('Erreur:', err);
+            alert('Erreur lors du démarrage');
         }
     };
 
@@ -39,8 +42,23 @@ function TechnicienInterventions() {
             setInterventions(interventions.map(i => 
                 i.id === id ? { ...i, statut: 'terminée', date_fin: new Date().toISOString(), duree_totale: res.data.duree } : i
             ));
+            alert('Intervention terminée');
         } catch (err) {
             console.error('Erreur:', err);
+            alert('Erreur lors de la fin');
+        }
+    };
+
+    const getStatusBadge = (statut) => {
+        switch(statut) {
+            case 'terminée':
+                return <span className="badge badge-success">Terminée</span>;
+            case 'en_cours':
+                return <span className="badge badge-warning">En cours</span>;
+            case 'prévue':
+                return <span className="badge badge-info">Prévue</span>;
+            default:
+                return <span className="badge badge-info">{statut}</span>;
         }
     };
 
@@ -61,13 +79,13 @@ function TechnicienInterventions() {
             <div className="admin-content">
                 <h1>Mes interventions</h1>
 
-                <div className="mt-30">
-                    {interventions.length === 0 ? (
-                        <div className="card text-center">
-                            <p>Aucune intervention</p>
-                        </div>
-                    ) : (
-                        interventions.map(i => (
+                {interventions.length === 0 ? (
+                    <div className="card text-center mt-30">
+                        <p>Aucune intervention pour le moment</p>
+                    </div>
+                ) : (
+                    <div className="mt-30">
+                        {interventions.map(i => (
                             <div key={i.id} className="card mb-20">
                                 <div className="flex-between">
                                     <div>
@@ -81,7 +99,7 @@ function TechnicienInterventions() {
                                         </p>
                                         <p>
                                             <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
-                                            {i.prenom} {i.nom}
+                                            Client: {i.prenom} {i.nom}
                                         </p>
                                         <p>
                                             <FontAwesomeIcon icon={faCalendarAlt} style={{ marginRight: '8px' }} />
@@ -91,11 +109,8 @@ function TechnicienInterventions() {
                                         {i.duree_totale && (
                                             <p className="text-light">Durée: {i.duree_totale} minutes</p>
                                         )}
-                                        <p>
-                                            Statut: 
-                                            <span className={`badge ${i.statut === 'terminée' ? 'badge-success' : i.statut === 'en_cours' ? 'badge-warning' : 'badge-info'}`}>
-                                                {i.statut}
-                                            </span>
+                                        <p style={{ marginTop: '10px' }}>
+                                            Statut: {getStatusBadge(i.statut)}
                                         </p>
                                     </div>
                                     <div className="flex gap-10">
@@ -114,9 +129,9 @@ function TechnicienInterventions() {
                                     </div>
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

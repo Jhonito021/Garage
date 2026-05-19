@@ -9,29 +9,19 @@ function Historique() {
     const [filter, setFilter] = useState('');
 
     useEffect(() => {
-        const fetchHistorique = async () => {
-            try {
-                const vehiculesRes = await api.get('/vehicules');
-                const vehicules = vehiculesRes.data;
-                
-                let allInterventions = [];
-                for (const v of vehicules) {
-                    try {
-                        const res = await api.get(`/vidange/vehicule/${v.id}`);
-                        allInterventions = [...allInterventions, ...res.data.map(i => ({ ...i, vehicule: v }))];
-                    } catch (e) {}
-                }
-                
-                allInterventions.sort((a, b) => new Date(b.date_vidange) - new Date(a.date_vidange));
-                setInterventions(allInterventions);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchHistorique();
-    }, []);
+    const fetchHistorique = async () => {
+        try {
+            const res = await api.get('/vidange/client/interventions');
+            console.log('Interventions:', res.data);
+            setInterventions(res.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchHistorique();
+}, []);
 
     const filteredInterventions = interventions.filter(i =>
         i.vehicule?.immatriculation?.toLowerCase().includes(filter.toLowerCase()) ||

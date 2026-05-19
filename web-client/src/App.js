@@ -27,6 +27,7 @@ import FacturesGestion from './pages/admin/FacturesGestion';
 import Clients from './pages/admin/Clients';
 import Vidanges from './pages/admin/Vidanges';
 import Parametres from './pages/admin/Parametres';
+import Techniciens from './pages/admin/Techniciens';
 
 // Pages technicien
 import TechnicienLogin from './pages/technicien/TechnicienLogin';
@@ -61,6 +62,7 @@ function App() {
                 <Route path="/admin/clients" element={<AdminRoute><Clients /></AdminRoute>} />
                 <Route path="/admin/vidanges" element={<AdminRoute><Vidanges /></AdminRoute>} />
                 <Route path="/admin/parametres" element={<AdminRoute><Parametres /></AdminRoute>} />
+                <Route path="/admin/techniciens" element={<AdminRoute><Techniciens /></AdminRoute>} />
 
                 {/* Routes technicien (technicien uniquement) */}
                 <Route path="/technicien/login" element={<TechnicienLogin />} />

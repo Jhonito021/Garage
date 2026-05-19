@@ -112,6 +112,10 @@ function Sidebar() {
                         <FontAwesomeIcon icon={faUsers} />
                         <span>Clients</span>
                     </Link>
+                    <Link to="/admin/techniciens" className={isActive('/admin/techniciens')}>
+                        <FontAwesomeIcon icon={faUsers} />
+                        <span>Techniciens</span>
+                    </Link>
                     <Link to="/admin/vidanges" className={isActive('/admin/vidanges')}>
                         <FontAwesomeIcon icon={faOilCan} />
                         <span>Vidanges</span>

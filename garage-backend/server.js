@@ -69,6 +69,7 @@ const planningRoutes = require('./src/routes/planning');
 const notificationRoutes = require('./src/routes/notifications');
 const statistiqueRoutes = require('./src/routes/statistiques');
 const clientRoutes = require('./src/routes/clients');
+const utilisateurRoutes = require('./src/routes/utilisateurs');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
@@ -83,6 +84,7 @@ app.use('/api/planning', planningRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/statistiques', statistiqueRoutes);
 app.use('/api/clients', clientRoutes);
+app.use('/api/utilisateurs', utilisateurRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Serveur démarré' });

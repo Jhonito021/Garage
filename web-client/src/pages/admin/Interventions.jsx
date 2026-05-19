@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWrench, faCar, faUser, faCalendarAlt, faSearch, faCheck, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faWrench, faCar, faUser, faCalendarAlt, faSearch, faEye } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar';
 import api from '../../services/api';
 
@@ -12,7 +12,8 @@ function Interventions() {
     useEffect(() => {
         const fetchInterventions = async () => {
             try {
-                const res = await api.get('/interventions/technicien');
+                const res = await api.get('/interventions/all');
+                console.log('Interventions reçues:', res.data);
                 setInterventions(res.data);
             } catch (err) {
                 console.error('Erreur:', err);
@@ -23,31 +24,24 @@ function Interventions() {
         fetchInterventions();
     }, []);
 
-    const handleStart = async (id) => {
-        try {
-            await api.put(`/interventions/${id}/debut`);
-            setInterventions(interventions.map(i => 
-                i.id === id ? { ...i, statut: 'en_cours', date_debut: new Date().toISOString() } : i
-            ));
-        } catch (err) {
-            console.error('Erreur:', err);
-        }
-    };
-
-    const handleEnd = async (id) => {
-        try {
-            const res = await api.put(`/interventions/${id}/fin`);
-            setInterventions(interventions.map(i => 
-                i.id === id ? { ...i, statut: 'terminée', date_fin: new Date().toISOString(), duree_totale: res.data.duree } : i
-            ));
-        } catch (err) {
-            console.error('Erreur:', err);
+    const getStatusBadge = (statut) => {
+        switch(statut) {
+            case 'terminée':
+                return <span className="badge badge-success">Terminée</span>;
+            case 'en_cours':
+                return <span className="badge badge-warning">En cours</span>;
+            case 'prévue':
+                return <span className="badge badge-info">Prévue</span>;
+            default:
+                return <span className="badge badge-info">{statut}</span>;
         }
     };
 
     const filteredInterventions = interventions.filter(i =>
         i.immatriculation?.toLowerCase().includes(filter.toLowerCase()) ||
-        i.marque?.toLowerCase().includes(filter.toLowerCase())
+        i.marque?.toLowerCase().includes(filter.toLowerCase()) ||
+        i.client_nom?.toLowerCase().includes(filter.toLowerCase()) ||
+        i.technicien_nom?.toLowerCase().includes(filter.toLowerCase())
     );
 
     if (loading) {
@@ -68,12 +62,12 @@ function Interventions() {
                 <div className="flex-between">
                     <h1>
                         <FontAwesomeIcon icon={faWrench} style={{ marginRight: '10px' }} />
-                        Interventions
+                        Suivi des interventions
                     </h1>
                     <div style={{ width: '300px' }}>
                         <input
                             type="text"
-                            placeholder="Rechercher par véhicule..."
+                            placeholder="Rechercher par véhicule, client ou technicien..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             style={{ marginBottom: 0 }}
@@ -81,13 +75,13 @@ function Interventions() {
                     </div>
                 </div>
 
-                <div className="mt-30">
-                    {filteredInterventions.length === 0 ? (
-                        <div className="card text-center">
-                            <p>Aucune intervention trouvée</p>
-                        </div>
-                    ) : (
-                        filteredInterventions.map(i => (
+                {filteredInterventions.length === 0 ? (
+                    <div className="card text-center mt-30">
+                        <p>Aucune intervention trouvée</p>
+                    </div>
+                ) : (
+                    <div className="mt-30">
+                        {filteredInterventions.map(i => (
                             <div key={i.id} className="card mb-20">
                                 <div className="flex-between">
                                     <div>
@@ -101,7 +95,11 @@ function Interventions() {
                                         </p>
                                         <p>
                                             <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
-                                            {i.prenom} {i.nom}
+                                            Client: {i.client_prenom} {i.client_nom}
+                                        </p>
+                                        <p>
+                                            <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
+                                            Technicien: {i.technicien_prenom} {i.technicien_nom || 'Non assigné'}
                                         </p>
                                         <p>
                                             <FontAwesomeIcon icon={faCalendarAlt} style={{ marginRight: '8px' }} />
@@ -111,32 +109,21 @@ function Interventions() {
                                         {i.duree_totale && (
                                             <p className="text-light">Durée: {i.duree_totale} minutes</p>
                                         )}
-                                        <p>
-                                            Statut: 
-                                            <span className={`badge ${i.statut === 'terminée' ? 'badge-success' : i.statut === 'en_cours' ? 'badge-warning' : 'badge-info'}`}>
-                                                {i.statut}
-                                            </span>
+                                        <p style={{ marginTop: '10px' }}>
+                                            Statut: {getStatusBadge(i.statut)}
                                         </p>
                                     </div>
-                                    <div className="flex gap-10">
-                                        {i.statut === 'prévue' && (
-                                            <button onClick={() => handleStart(i.id)}>
-                                                <FontAwesomeIcon icon={faPlay} style={{ marginRight: '5px' }} />
-                                                Démarrer
-                                            </button>
-                                        )}
-                                        {i.statut === 'en_cours' && (
-                                            <button onClick={() => handleEnd(i.id)}>
-                                                <FontAwesomeIcon icon={faCheck} style={{ marginRight: '5px' }} />
-                                                Terminer
-                                            </button>
-                                        )}
+                                    <div>
+                                        <button disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                            <FontAwesomeIcon icon={faEye} style={{ marginRight: '5px' }} />
+                                            Lecture seule
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

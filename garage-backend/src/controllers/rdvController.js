@@ -3,17 +3,21 @@ const db = require('../models/db');
 const getRdvs = async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT r.*, 
-                   v.immatriculation, 
-                   v.marque, 
-                   v.modele,
-                   u.nom as client_nom,
-                   u.prenom as client_prenom
-            FROM rdv r 
-            JOIN vehicules v ON r.vehicule_id = v.id 
+            SELECT 
+                r.*,
+                v.immatriculation,
+                v.marque,
+                v.modele,
+                u.nom as client_nom,
+                u.prenom as client_prenom,
+                u.email as client_email
+            FROM rdv r
+            JOIN vehicules v ON r.vehicule_id = v.id
             JOIN utilisateurs u ON r.client_id = u.id
             ORDER BY r.date_heure DESC
         `);
+        
+        console.log('Nombre de RDV trouvés:', rows.length);
         res.json(rows);
     } catch (err) {
         console.error('Erreur getRdvs:', err);
@@ -31,9 +35,10 @@ const createRdv = async (req, res) => {
     try {
         // Vérifier si le créneau est disponible
         const [existing] = await db.query(
-            'SELECT id FROM rdv WHERE date_heure = ? AND statut != "annulé"', 
+            'SELECT id FROM rdv WHERE date_heure = ? AND statut != "annulé"',
             [date_heure]
         );
+        
         if (existing.length > 0) {
             return res.status(400).json({ error: 'Créneau déjà pris' });
         }
