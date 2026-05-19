@@ -90,9 +90,7 @@ const checkVidangeDue = async (req, res) => {
         const [vehicule] = await db.query('SELECT kilometrage_actuel FROM vehicules WHERE id = ?', [req.params.vehiculeId]);
         const [derniere] = await db.query('SELECT kilometrage FROM vidanges WHERE vehicule_id = ? ORDER BY date_vidange DESC LIMIT 1', [req.params.vehiculeId]);
         
-        if (derniere.length === 0) {
-            return res.json({ due: false, message: 'Aucune vidange enregistrée' });
-        }
+        
         
         const kmParcourus = vehicule[0].kilometrage_actuel - derniere[0].kilometrage;
         const due = kmParcourus >= intervalle;
