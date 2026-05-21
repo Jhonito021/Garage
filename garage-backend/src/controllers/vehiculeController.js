@@ -1,10 +1,11 @@
 const db = require('../models/db');
 
 const getVehicules = async (req, res) => {
-    if (!req.session.userId) {
+    // Vérifier la session
+    if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
     }
-    
+
     try {
         const [rows] = await db.query('SELECT * FROM vehicules WHERE client_id = ?', [req.session.userId]);
         res.json(rows);
@@ -15,10 +16,10 @@ const getVehicules = async (req, res) => {
 };
 
 const addVehicule = async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
     }
-    
+
     const { immatriculation, marque, modele, annee, type_carburant, kilometrage_actuel } = req.body;
 
     if (!immatriculation || !marque || !modele) {
@@ -32,20 +33,20 @@ const addVehicule = async (req, res) => {
         );
         res.status(201).json({ id: result.insertId, message: 'Véhicule ajouté' });
     } catch (err) {
-        console.error('Erreur addVehicule:', err);
         if (err.code === 'ER_DUP_ENTRY') {
             res.status(400).json({ error: 'Cette immatriculation existe déjà' });
         } else {
+            console.error('Erreur addVehicule:', err);
             res.status(500).json({ error: err.message });
         }
     }
 };
 
 const updateVehicule = async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
     }
-    
+
     const { immatriculation, marque, modele, annee, type_carburant } = req.body;
     const vehiculeId = req.params.id;
 
@@ -62,10 +63,10 @@ const updateVehicule = async (req, res) => {
 };
 
 const deleteVehicule = async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
     }
-    
+
     const vehiculeId = req.params.id;
 
     try {

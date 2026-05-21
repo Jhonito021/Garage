@@ -1,5 +1,7 @@
 const db = require('../models/db');
 
+
+
 // Enregistrer une vidange (technicien)
 const createVidange = async (req, res) => {
     if (req.user.role !== 'technicien' && req.user.role !== 'admin') {
@@ -39,9 +41,8 @@ const getVidangesByVehicule = async (req, res) => {
     }
 };
 
-// Récupérer toutes les interventions du client
+/// Récupérer toutes les interventions du client (pour historique)
 const getClientInterventions = async (req, res) => {
-    // Vérifier la session
     if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
     }
@@ -63,9 +64,21 @@ const getClientInterventions = async (req, res) => {
         
         // Récupérer les interventions pour ces véhicules
         const [rows] = await db.query(
-            `SELECT i.*, 
-                    v.immatriculation, v.marque, v.modele,
-                    t.nom as technicien_nom, t.prenom as technicien_prenom
+            `SELECT 
+                i.id,
+                i.vehicule_id,
+                i.statut,
+                i.description,
+                i.date_debut,
+                i.date_fin,
+                i.duree_totale,
+                v.immatriculation,
+                v.marque,
+                v.modele,
+                t.nom as technicien_nom,
+                t.prenom as technicien_prenom,
+                NULL as type_huile,
+                i.date_debut as date_intervention
              FROM interventions i
              JOIN vehicules v ON i.vehicule_id = v.id
              LEFT JOIN utilisateurs t ON i.technicien_id = t.id
@@ -90,7 +103,9 @@ const checkVidangeDue = async (req, res) => {
         const [vehicule] = await db.query('SELECT kilometrage_actuel FROM vehicules WHERE id = ?', [req.params.vehiculeId]);
         const [derniere] = await db.query('SELECT kilometrage FROM vidanges WHERE vehicule_id = ? ORDER BY date_vidange DESC LIMIT 1', [req.params.vehiculeId]);
         
-        
+        if (derniere.length === 0) {
+            return res.json({ due: false, message: 'Aucune vidange enregistrée' });
+        }
         
         const kmParcourus = vehicule[0].kilometrage_actuel - derniere[0].kilometrage;
         const due = kmParcourus >= intervalle;

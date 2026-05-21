@@ -15,6 +15,7 @@ import Vehicles from './pages/client/Vehicles';
 import Rdv from './pages/client/Rdv';
 import Historique from './pages/client/Historique';
 import Factures from './pages/client/Factures';
+import SuiviInterventions from './pages/client/SuiviInterventions';
 
 // Pages admin
 import AdminLogin from './pages/admin/AdminLogin';
@@ -50,6 +51,7 @@ function App() {
                 <Route path="/rdv" element={<PrivateRoute><Rdv /></PrivateRoute>} />
                 <Route path="/historique" element={<PrivateRoute><Historique /></PrivateRoute>} />
                 <Route path="/factures" element={<PrivateRoute><Factures /></PrivateRoute>} />
+                <Route path="/suivi" element={<PrivateRoute><SuiviInterventions /></PrivateRoute>} />
                 
                 {/* Routes admin */}
                 <Route path="/admin/login" element={<AdminLogin />} />

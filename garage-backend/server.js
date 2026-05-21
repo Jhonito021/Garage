@@ -70,6 +70,7 @@ const notificationRoutes = require('./src/routes/notifications');
 const statistiqueRoutes = require('./src/routes/statistiques');
 const clientRoutes = require('./src/routes/clients');
 const utilisateurRoutes = require('./src/routes/utilisateurs');
+const suiviRoutes = require('./src/routes/suivi');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
@@ -85,6 +86,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/statistiques', statistiqueRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/utilisateurs', utilisateurRoutes);
+app.use('/api/suivi', suiviRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Serveur démarré' });

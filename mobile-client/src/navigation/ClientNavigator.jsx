@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faCar, faCalendarAlt, faMapMarkerAlt, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faCar, faCalendarAlt, faChartLine, faUser } from '@fortawesome/free-solid-svg-icons';
 
 import ClientDashboardScreen from '../screens/client/ClientDashboardScreen';
-import VehiclesScreen from '../screens/client/VehiclesScreen';
+import VehicleScreen from '../screens/client/VehicleScreen';
 import RdvScreen from '../screens/client/RdvScreen';
 import SuiviScreen from '../screens/client/SuiviScreen';
 import FacturesScreen from '../screens/client/FacturesScreen';
@@ -20,7 +20,7 @@ export default function ClientNavigator() {
           if (route.name === 'Accueil') icon = faHome;
           else if (route.name === 'Véhicules') icon = faCar;
           else if (route.name === 'Rendez-vous') icon = faCalendarAlt;
-          else if (route.name === 'Suivi') icon = faMapMarkerAlt;
+          else if (route.name === 'Suivi') icon = faChartLine;
           else if (route.name === 'Profil') icon = faUser;
           return <FontAwesomeIcon icon={icon} size={size} color={color} />;
         },
@@ -33,7 +33,7 @@ export default function ClientNavigator() {
       })}
     >
       <Tab.Screen name="Accueil" component={ClientDashboardScreen} />
-      <Tab.Screen name="Véhicules" component={VehiclesScreen} />
+      <Tab.Screen name="Véhicules" component={VehicleScreen} />
       <Tab.Screen name="Rendez-vous" component={RdvScreen} />
       <Tab.Screen name="Suivi" component={SuiviScreen} />
       <Tab.Screen name="Profil" component={FacturesScreen} />

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCar, faTachometerAlt, faCalendarAlt, faHistory, faFileInvoice, faSignOutAlt, faUser, faPlus, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import api from '../services/api';
 
 function Navbar() {
@@ -47,6 +48,10 @@ function Navbar() {
                     <Link to="/rdv">
                         <FontAwesomeIcon icon={faCalendarAlt} style={{ marginRight: '5px' }} />
                         Rendez-vous
+                    </Link>
+                    <Link to="/suivi">
+                        <FontAwesomeIcon icon={faChartLine} style={{ marginRight: '5px' }} />
+                        Suivi
                     </Link>
                     <Link to="/historique">
                         <FontAwesomeIcon icon={faHistory} style={{ marginRight: '5px' }} />
