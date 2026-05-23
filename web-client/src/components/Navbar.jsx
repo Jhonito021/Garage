@@ -53,10 +53,10 @@ function Navbar() {
                         <FontAwesomeIcon icon={faChartLine} style={{ marginRight: '5px' }} />
                         Suivi
                     </Link>
-                    <Link to="/historique">
+                    {/* <Link to="/historique">
                         <FontAwesomeIcon icon={faHistory} style={{ marginRight: '5px' }} />
                         Historique
-                    </Link>
+                    </Link> */}
                     <Link to="/factures">
                         <FontAwesomeIcon icon={faFileInvoice} style={{ marginRight: '5px' }} />
                         Factures

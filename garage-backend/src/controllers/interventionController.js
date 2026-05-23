@@ -31,10 +31,11 @@ const getInterventions = async (req, res) => {
 
     try {
         const [rows] = await db.query(
-            `SELECT i.*, v.immatriculation, v.marque, v.modele, u.nom, u.prenom 
+            `SELECT i.*, v.immatriculation, v.marque, v.modele, u.nom, u.prenom, r.date_heure as rdv_date
              FROM interventions i 
              JOIN vehicules v ON i.vehicule_id = v.id 
              JOIN utilisateurs u ON v.client_id = u.id 
+             LEFT JOIN rdv r ON i.rdv_id = r.id
              WHERE i.technicien_id = ? 
              ORDER BY i.date_debut DESC`,
             [req.session.userId]
@@ -46,7 +47,7 @@ const getInterventions = async (req, res) => {
     }
 };
 
-// Démarrer une intervention
+// Démarrer une intervention (avec vérification de date)
 const startIntervention = async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
@@ -57,7 +58,10 @@ const startIntervention = async (req, res) => {
     try {
         // Vérifier que l'intervention appartient au technicien
         const [check] = await db.query(
-            'SELECT * FROM interventions WHERE id = ? AND technicien_id = ?',
+            `SELECT i.*, r.date_heure as rdv_date 
+             FROM interventions i 
+             LEFT JOIN rdv r ON i.rdv_id = r.id 
+             WHERE i.id = ? AND i.technicien_id = ?`,
             [interventionId, req.session.userId]
         );
         
@@ -65,8 +69,43 @@ const startIntervention = async (req, res) => {
             return res.status(404).json({ error: 'Intervention non trouvée' });
         }
 
+        const intervention = check[0];
+        
+        // VÉRIFICATION DE LA DATE
+        // Tolérance de ±1 jour par rapport à la date prévue du rendez-vous
+        const dateActuelle = new Date();
+        const datePrevue = intervention.rdv_date ? new Date(intervention.rdv_date) : new Date(intervention.date_debut);
+        
+        // Vérifier si la date est valide
+        if (datePrevue && !isNaN(datePrevue.getTime())) {
+            // Calculer la différence en jours
+            const diffTime = Math.abs(dateActuelle - datePrevue);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Si la différence est supérieure à 1 jour, bloquer
+            if (diffDays > 1) {
+                return res.status(400).json({ 
+                    error: 'Impossible de démarrer cette intervention car la date actuelle ne correspond pas à la date prévue par le client.',
+                    datePrevue: datePrevue.toLocaleDateString('fr-FR'),
+                    dateActuelle: dateActuelle.toLocaleDateString('fr-FR')
+                });
+            }
+        }
+
+        // Vérifier si l'intervention n'est pas déjà démarrée
+        if (intervention.statut === 'en_cours') {
+            return res.status(400).json({ error: 'Cette intervention est déjà en cours' });
+        }
+        
+        if (intervention.statut === 'terminée') {
+            return res.status(400).json({ error: 'Cette intervention est déjà terminée' });
+        }
+
         await db.query('UPDATE interventions SET statut = "en_cours", date_debut = NOW() WHERE id = ?', [interventionId]);
-        res.json({ message: 'Intervention démarrée' });
+        
+        res.json({ 
+            message: 'Intervention démarrée avec succès'
+        });
     } catch (err) {
         console.error('Erreur startIntervention:', err);
         res.status(500).json({ error: err.message });
