@@ -6,5 +6,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/me', getMe);
+// router.put('/update', updateProfil);
+// router.put('/change-password', changePassword);
 
 module.exports = router;

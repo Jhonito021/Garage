@@ -61,6 +61,10 @@ function Navbar() {
                         <FontAwesomeIcon icon={faFileInvoice} style={{ marginRight: '5px' }} />
                         Factures
                     </Link>
+                    <Link to="/profil">
+                        <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />
+                        Mon profil
+                    </Link>
                 </div>
             )}
             <div className="navbar-user">

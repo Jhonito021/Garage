@@ -2,7 +2,11 @@
   "name": "garage-pro",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": ">=18 <23"
+  },
   "scripts": {
+    "postinstall": "node scripts/patch-expo-externals-win32.js",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",

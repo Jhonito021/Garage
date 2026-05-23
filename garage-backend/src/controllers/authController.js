@@ -134,4 +134,50 @@ const getMe = async (req, res) => {
     }
 };
 
+// Mettre à jour le profil
+const updateProfil = async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    const { nom, prenom, telephone, adresse } = req.body;
+
+    try {
+        await db.query(
+            'UPDATE utilisateurs SET nom = ?, prenom = ?, telephone = ?, adresse = ? WHERE id = ?',
+            [nom, prenom, telephone, adresse, req.session.userId]
+        );
+        res.json({ message: 'Profil mis à jour avec succès' });
+    } catch (err) {
+        console.error('Erreur updateProfil:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Changer le mot de passe
+const changePassword = async (req, res) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    const { ancien_mot_de_passe, nouveau_mot_de_passe } = req.body;
+
+    try {
+        const [rows] = await db.query('SELECT mot_de_passe FROM utilisateurs WHERE id = ?', [req.session.userId]);
+        const valid = await bcrypt.compare(ancien_mot_de_passe, rows[0].mot_de_passe);
+        
+        if (!valid) {
+            return res.status(400).json({ error: 'Ancien mot de passe incorrect' });
+        }
+
+        const hashedPassword = await bcrypt.hash(nouveau_mot_de_passe, 10);
+        await db.query('UPDATE utilisateurs SET mot_de_passe = ? WHERE id = ?', [hashedPassword, req.session.userId]);
+        
+        res.json({ message: 'Mot de passe modifié avec succès' });
+    } catch (err) {
+        console.error('Erreur changePassword:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 module.exports = { register, login, logout, getMe };
