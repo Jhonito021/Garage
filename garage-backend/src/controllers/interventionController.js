@@ -1,5 +1,28 @@
 const db = require('../models/db');
 
+// Vérifier si un technicien est disponible sur un créneau
+const checkTechnicienDisponibilite = async (technicien_id, date_heure) => {
+    // Récupérer la date de début et fin estimée (2 heures par défaut)
+    const dateDebut = new Date(date_heure);
+    const dateFin = new Date(dateDebut);
+    dateFin.setHours(dateFin.getHours() + 2); // Durée estimée de 2 heures
+    
+    const [rows] = await db.query(
+        `SELECT i.* 
+         FROM interventions i
+         WHERE i.technicien_id = ? 
+         AND i.statut != 'terminée'
+         AND (
+             (i.date_debut <= ? AND i.date_fin >= ?) OR
+             (i.date_debut BETWEEN ? AND ?) OR
+             (i.date_fin BETWEEN ? AND ?)
+         )`,
+        [technicien_id, dateFin, dateDebut, dateDebut, dateFin, dateDebut, dateFin]
+    );
+    
+    return rows.length === 0;
+};
+
 // Lister les interventions du technicien connecté
 const getInterventions = async (req, res) => {
     if (!req.session.userId) {
@@ -111,7 +134,7 @@ const scanPlaque = async (req, res) => {
     }
 };
 
-// Créer une intervention à partir d'un rendez-vous (pour admin)
+// Créer une intervention à partir d'un rendez-vous (pour admin) - AVEC VÉRIFICATION DISPONIBILITÉ
 const createInterventionFromRdv = async (req, res) => {
     const { rdv_id, technicien_id } = req.body;
 
@@ -122,7 +145,7 @@ const createInterventionFromRdv = async (req, res) => {
     try {
         // Récupérer les informations du rendez-vous
         const [rdv] = await db.query(
-            'SELECT vehicule_id, service_demande FROM rdv WHERE id = ?',
+            'SELECT vehicule_id, service_demande, date_heure FROM rdv WHERE id = ?',
             [rdv_id]
         );
         
@@ -150,12 +173,21 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(404).json({ error: 'Technicien non trouvé' });
         }
 
+        // VÉRIFIER LA DISPONIBILITÉ DU TECHNICIEN
+        const estDisponible = await checkTechnicienDisponibilite(technicien_id, rdv[0].date_heure);
+        
+        if (!estDisponible) {
+            return res.status(409).json({ 
+                error: 'Ce technicien est déjà assigné à une autre intervention sur ce créneau' 
+            });
+        }
+
         // Créer l'intervention
         const [result] = await db.query(
             `INSERT INTO interventions 
-            (vehicule_id, technicien_id, rdv_id, statut, description) 
-            VALUES (?, ?, ?, "prévue", ?)`,
-            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande]
+            (vehicule_id, technicien_id, rdv_id, statut, description, date_debut) 
+            VALUES (?, ?, ?, "prévue", ?, ?)`,
+            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande, rdv[0].date_heure]
         );
 
         res.status(201).json({ 
@@ -168,6 +200,23 @@ const createInterventionFromRdv = async (req, res) => {
     }
 };
 
+// Vérifier la disponibilité d'un technicien pour un créneau (API)
+const checkDisponibilite = async (req, res) => {
+    const { technicien_id, date_heure } = req.query;
+    
+    if (!technicien_id || !date_heure) {
+        return res.status(400).json({ error: 'technicien_id et date_heure sont requis' });
+    }
+    
+    try {
+        const estDisponible = await checkTechnicienDisponibilite(technicien_id, date_heure);
+        res.json({ disponible: estDisponible });
+    } catch (err) {
+        console.error('Erreur vérification disponibilité:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 // Lister toutes les interventions (pour admin)
 const getAllInterventions = async (req, res) => {
     try {
@@ -175,11 +224,13 @@ const getAllInterventions = async (req, res) => {
             SELECT i.*, 
                    v.immatriculation, v.marque, v.modele,
                    u.nom as client_nom, u.prenom as client_prenom,
-                   t.nom as technicien_nom, t.prenom as technicien_prenom
+                   t.nom as technicien_nom, t.prenom as technicien_prenom,
+                   r.date_heure as rdv_date
             FROM interventions i
             JOIN vehicules v ON i.vehicule_id = v.id
             JOIN utilisateurs u ON v.client_id = u.id
             LEFT JOIN utilisateurs t ON i.technicien_id = t.id
+            LEFT JOIN rdv r ON i.rdv_id = r.id
             ORDER BY i.date_debut DESC
         `);
         res.json(rows);
@@ -225,6 +276,7 @@ module.exports = {
     endIntervention,
     scanPlaque,
     createInterventionFromRdv,
+    checkDisponibilite,
     getAllInterventions,
     updateIntervention,
     deleteIntervention

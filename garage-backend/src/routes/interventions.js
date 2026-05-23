@@ -5,6 +5,7 @@ const {
     endIntervention, 
     scanPlaque,
     createInterventionFromRdv,
+    checkDisponibilite,
     getAllInterventions,
     updateIntervention,
     deleteIntervention
@@ -22,5 +23,8 @@ router.post('/', createInterventionFromRdv);
 router.get('/all', getAllInterventions);
 router.put('/:id', updateIntervention);
 router.delete('/:id', deleteIntervention);
+
+// Route pour vérifier la disponibilité d'un technicien
+router.get('/check-disponibilite', checkDisponibilite);
 
 module.exports = router;
