@@ -1,42 +1,27 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faHome, faCar, faCalendarAlt, faChartLine, faUser } from '@fortawesome/free-solid-svg-icons';
-
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ClientDashboardScreen from '../screens/client/ClientDashboardScreen';
-import VehicleScreen from '../screens/client/VehicleScreen';
+import VehiclesScreen from '../screens/client/VehiclesScreen';
 import RdvScreen from '../screens/client/RdvScreen';
 import SuiviScreen from '../screens/client/SuiviScreen';
 import FacturesScreen from '../screens/client/FacturesScreen';
 
-const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function ClientNavigator() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let icon;
-          if (route.name === 'Accueil') icon = faHome;
-          else if (route.name === 'Véhicules') icon = faCar;
-          else if (route.name === 'Rendez-vous') icon = faCalendarAlt;
-          else if (route.name === 'Suivi') icon = faChartLine;
-          else if (route.name === 'Profil') icon = faUser;
-          return <FontAwesomeIcon icon={icon} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#e94560',
-        tabBarInactiveTintColor: '#aaaaaa',
-        tabBarStyle: { backgroundColor: '#1a1a2e', borderTopColor: '#333' },
+    <Stack.Navigator
+      screenOptions={{
         headerStyle: { backgroundColor: '#1a1a2e' },
         headerTitleStyle: { color: '#e94560' },
         headerTintColor: '#e94560',
-      })}
+      }}
     >
-      <Tab.Screen name="Accueil" component={ClientDashboardScreen} />
-      <Tab.Screen name="Véhicules" component={VehicleScreen} />
-      <Tab.Screen name="Rendez-vous" component={RdvScreen} />
-      <Tab.Screen name="Suivi" component={SuiviScreen} />
-      <Tab.Screen name="Profil" component={FacturesScreen} />
-    </Tab.Navigator>
+      <Stack.Screen name="Accueil" component={ClientDashboardScreen} options={{ title: 'Accueil' }} />
+      <Stack.Screen name="Vehicules" component={VehiclesScreen} options={{ title: 'Mes véhicules' }} />
+      <Stack.Screen name="Rdv" component={RdvScreen} options={{ title: 'Rendez-vous' }} />
+      <Stack.Screen name="Suivi" component={SuiviScreen} options={{ title: 'Suivi' }} />
+      <Stack.Screen name="Factures" component={FacturesScreen} options={{ title: 'Factures' }} />
+    </Stack.Navigator>
   );
 }

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ClientNavigator from './ClientNavigator';
 import HomeScreen from '../screens/auth/HomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const [userRole, setUserRole] = useState(null);
@@ -38,9 +38,6 @@ export default function AppNavigator() {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
           </>
-        ) : userRole === 'technicien' ? (
-          // Pour le moment, redirige vers client (à remplacer par TechnicienNavigator plus tard)
-          <Stack.Screen name="Client" component={ClientNavigator} />
         ) : (
           <Stack.Screen name="Client" component={ClientNavigator} />
         )}

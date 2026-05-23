@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Header({ title, showBack = false }) {
   const navigation = useNavigation();
@@ -17,12 +16,12 @@ export default function Header({ title, showBack = false }) {
     <View style={styles.header}>
       {showBack && (
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <FontAwesomeIcon icon={faArrowLeft} size={24} color="#f5f5f5" />
+          <Ionicons name="arrow-back" size={24} color="#f5f5f5" />
         </TouchableOpacity>
       )}
       <Text style={styles.title}>{title}</Text>
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <FontAwesomeIcon icon={faSignOutAlt} size={20} color="#e94560" />
+        <Ionicons name="log-out" size={20} color="#e94560" />
       </TouchableOpacity>
     </View>
   );

@@ -30,12 +30,29 @@ app.use(session({
     }
 }));
 
-// CORS doit être AVANT les routes
+// CORS : web-client + Expo / React Native (origine absente ou LAN)
 app.use(cors({
-    origin: 'http://localhost:3001',
+    origin(origin, callback) {
+        if (!origin) {
+            return callback(null, true);
+        }
+        const allowed = [
+            'http://localhost:3001',
+            'http://127.0.0.1:3001',
+            /^http:\/\/localhost:\d+$/,
+            /^http:\/\/127\.0\.0\.1:\d+$/,
+            /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+            /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+            /^exp:\/\//,
+        ];
+        if (allowed.some((rule) => (typeof rule === 'string' ? origin === rule : rule.test(origin)))) {
+            return callback(null, true);
+        }
+        callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
 app.use(express.json());

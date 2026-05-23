@@ -1,26 +1,25 @@
 {
   "expo": {
-    "name": "Garage Pro",
-    "slug": "garage-mobile",
+    "name": "Hasina Masina",
+    "slug": "hasina-masina",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1a1a2e"
+      "backgroundColor": "#4A148C"
     },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.garage.mobile"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1a1a2e"
-      },
-      "package": "com.garage.mobile"
+        "backgroundColor": "#4A148C"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

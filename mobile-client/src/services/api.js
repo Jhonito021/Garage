@@ -1,29 +1,53 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Remplacez par l'IP de votre ordinateur
-// Pour trouver votre IP: ipconfig (Windows) ou ifconfig (Mac/Linux)
+// Version sans axios - utilise fetch directement
 const API_URL = 'http://192.168.56.1:3000/api';
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
+const api = {
+  get: async (url) => {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    const data = await response.json();
+    return { data };
   },
-  withCredentials: true,
-});
-
-api.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+  post: async (url, body) => {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    return { data };
   },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+  put: async (url, body) => {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    return { data };
+  },
+  delete: async (url) => {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    const data = await response.json();
+    return { data };
+  },
+};
 
 export default api;
