@@ -18,7 +18,21 @@ function AdminDashboard() {
         const fetchStats = async () => {
             try {
                 const res = await api.get('/statistiques/dashboard');
-                setStats(res.data);
+                console.log('Stats reçues:', res.data);
+                
+                // Convertir les valeurs en nombres
+                const caMois = parseFloat(res.data.ca_mois) || 0;
+                const totalClients = parseInt(res.data.total_clients) || 0;
+                const totalInterventions = parseInt(res.data.total_interventions_mois) || 0;
+                const totalRdv = parseInt(res.data.total_rdv_mois) || 0;
+                
+                setStats({
+                    ca_mois: caMois,
+                    total_clients: totalClients,
+                    total_interventions_mois: totalInterventions,
+                    total_rdv_mois: totalRdv,
+                    interventions_par_technicien: res.data.interventions_par_technicien || []
+                });
             } catch (err) {
                 console.error('Erreur stats:', err);
             } finally {
@@ -30,9 +44,9 @@ function AdminDashboard() {
 
     if (loading) {
         return (
-            <div className="admin-container">
+            <div style={{ display: 'flex' }}>
                 <Sidebar />
-                <div className="admin-content">
+                <div style={{ marginLeft: '250px', padding: '20px', width: '100%' }}>
                     <div className="loading">Chargement...</div>
                 </div>
             </div>
@@ -40,50 +54,50 @@ function AdminDashboard() {
     }
 
     return (
-        <div className="admin-container">
+        <div style={{ display: 'flex' }}>
             <Sidebar />
-            <div className="admin-content">
+            <div style={{ marginLeft: '250px', padding: '20px', width: '100%' }}>
                 <h1>Tableau de bord</h1>
                 
-                <div className="grid-4">
-                    <div className="stat-card">
-                        <div className="stat-card-icon">
+                <div className="grid-4" style={{ marginTop: '30px' }}>
+                    <div className="card text-center">
+                        <div style={{ fontSize: '2rem', color: 'var(--secondary-color)' }}>
                             <FontAwesomeIcon icon={faEuroSign} />
                         </div>
-                        <div className="stat-card-value">{stats.ca_mois.toFixed(2)} €</div>
-                        <div className="stat-card-label">CA du mois</div>
+                        <h3>CA du mois</h3>
+                        <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.ca_mois.toFixed(2)} €</p>
                     </div>
                     
-                    <div className="stat-card">
-                        <div className="stat-card-icon">
+                    <div className="card text-center">
+                        <div style={{ fontSize: '2rem', color: 'var(--secondary-color)' }}>
                             <FontAwesomeIcon icon={faWrench} />
                         </div>
-                        <div className="stat-card-value">{stats.total_interventions_mois}</div>
-                        <div className="stat-card-label">Interventions ce mois</div>
+                        <h3>Interventions</h3>
+                        <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.total_interventions_mois}</p>
+                        <p className="text-light">ce mois</p>
                     </div>
                     
-                    <div className="stat-card">
-                        <div className="stat-card-icon">
+                    <div className="card text-center">
+                        <div style={{ fontSize: '2rem', color: 'var(--secondary-color)' }}>
                             <FontAwesomeIcon icon={faUsers} />
                         </div>
-                        <div className="stat-card-value">{stats.total_clients}</div>
-                        <div className="stat-card-label">Clients</div>
+                        <h3>Clients</h3>
+                        <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.total_clients}</p>
                     </div>
                     
-                    <div className="stat-card">
-                        <div className="stat-card-icon">
+                    <div className="card text-center">
+                        <div style={{ fontSize: '2rem', color: 'var(--secondary-color)' }}>
                             <FontAwesomeIcon icon={faCalendarAlt} />
                         </div>
-                        <div className="stat-card-value">{stats.total_rdv_mois}</div>
-                        <div className="stat-card-label">Rendez-vous ce mois</div>
+                        <h3>Rendez-vous</h3>
+                        <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{stats.total_rdv_mois}</p>
+                        <p className="text-light">ce mois</p>
                     </div>
                 </div>
 
                 {stats.interventions_par_technicien.length > 0 && (
-                    <div className="admin-card" style={{ marginTop: '30px' }}>
-                        <div className="admin-card-header">
-                            <div className="admin-card-title">Interventions par technicien</div>
-                        </div>
+                    <div className="card mt-30">
+                        <h2>Interventions par technicien</h2>
                         <table className="admin-table">
                             <thead>
                                 <tr>
@@ -92,8 +106,8 @@ function AdminDashboard() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {stats.interventions_par_technicien.map(tech => (
-                                    <tr key={tech.id}>
+                                {stats.interventions_par_technicien.map((tech, index) => (
+                                    <tr key={index}>
                                         <td>{tech.prenom} {tech.nom}</td>
                                         <td>{tech.nb_interventions}</td>
                                     </tr>
