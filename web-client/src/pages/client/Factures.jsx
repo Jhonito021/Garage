@@ -9,7 +9,13 @@ import {
   faHourglassHalf, 
   faCreditCard,
   faEye,
-  faSyncAlt
+  faSyncAlt,
+  faBoxes,
+  faCar,
+  faUser,
+  faMapMarkerAlt,
+  faEnvelope,
+  faWrench
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../../services/api';
 
@@ -73,6 +79,7 @@ function Factures() {
   const openDetail = async (id) => {
     try {
       const res = await api.get(`/factures/${id}`);
+      console.log('Détail facture reçu:', res.data);
       setDetailFacture(res.data);
       setDetailVisible(id);
     } catch (err) {
@@ -108,7 +115,6 @@ function Factures() {
     fetchFactures();
   };
 
-  // Fonction pour formater le montant en nombre
   const formatMontant = (montant) => {
     const nombre = parseFloat(montant);
     if (isNaN(nombre)) return '0.00';
@@ -140,7 +146,7 @@ function Factures() {
       </div>
 
       {error && (
-        <div className="card text-center" style={{ backgroundColor: 'rgba(244, 67, 54, 0.1)', borderColor: 'var(--danger)' }}>
+        <div className="card text-center" style={{ backgroundColor: 'rgba(244, 67, 54, 0.1)', borderColor: 'var(--danger)', marginBottom: '20px' }}>
           <p className="text-danger">{error}</p>
           <button onClick={handleRefresh} className="mt-10">Réessayer</button>
         </div>
@@ -186,7 +192,7 @@ function Factures() {
                   </p>
                   {f.marque && (
                     <p className="text-light" style={{ fontSize: '12px', marginTop: '5px' }}>
-                      <FontAwesomeIcon icon={faFileInvoice} style={{ marginRight: '5px' }} />
+                      <FontAwesomeIcon icon={faCar} style={{ marginRight: '5px' }} />
                       Intervention sur {f.marque} {f.modele} - {f.immatriculation}
                     </p>
                   )}
@@ -249,23 +255,116 @@ function Factures() {
               {/* Modal de détail de facture */}
               {detailVisible === f.id && detailFacture && (
                 <div className="modal-overlay" onClick={closeDetail}>
-                  <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+                  <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
                     <div className="modal-header">
-                      <h3>Détail de la facture #{detailFacture.id}</h3>
+                      <h3>
+                        <FontAwesomeIcon icon={faFileInvoice} style={{ marginRight: '10px' }} />
+                        Détail de la facture
+                      </h3>
                       <span className="modal-close" onClick={closeDetail}>&times;</span>
                     </div>
-                    <div>
-                      <p><strong>Date d'émission:</strong> {new Date(detailFacture.date_emission).toLocaleDateString('fr-FR')}</p>
-                      <p><strong>Client:</strong> {detailFacture.prenom} {detailFacture.nom}</p>
-                      <p><strong>Email:</strong> {detailFacture.email}</p>
-                      <p><strong>Adresse:</strong> {detailFacture.adresse || 'Non renseignée'}</p>
+                    <div className="detail-facture">
+                      {/* Informations générales */}
+                      <div className="detail-section">
+                        <h4>Informations générales</h4>
+                        <p><strong>Numéro:</strong> {detailFacture.facture?.id || detailFacture.id}</p>
+                        <p><strong>Date d'émission:</strong> {new Date(detailFacture.facture?.date_emission || detailFacture.date_emission).toLocaleDateString('fr-FR')}</p>
+                        <p><strong>Statut:</strong> 
+                          <span className={`badge ${(detailFacture.facture?.statut_paiement || detailFacture.statut_paiement) === 'payé' ? 'badge-success' : 'badge-danger'}`} style={{ marginLeft: '8px' }}>
+                            {(detailFacture.facture?.statut_paiement || detailFacture.statut_paiement) === 'payé' ? 'Payée' : 'Impayée'}
+                          </span>
+                        </p>
+                      </div>
+
                       <hr style={{ borderColor: '#333', margin: '15px 0' }} />
-                      <p><strong>Véhicule:</strong> {detailFacture.marque} {detailFacture.modele} - {detailFacture.immatriculation}</p>
-                      <p><strong>Description:</strong> {detailFacture.description || 'Intervention'}</p>
+
+                      {/* Client */}
+                      <div className="detail-section">
+                        <h4>
+                          <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
+                          Client
+                        </h4>
+                        <p><strong>Nom:</strong> {detailFacture.facture?.prenom || detailFacture.prenom} {detailFacture.facture?.nom || detailFacture.nom}</p>
+                        <p><strong>Email:</strong> {detailFacture.facture?.email || detailFacture.email}</p>
+                        <p><strong>Adresse:</strong> {detailFacture.facture?.adresse || detailFacture.adresse || 'Non renseignée'}</p>
+                      </div>
+
                       <hr style={{ borderColor: '#333', margin: '15px 0' }} />
-                      <p><strong>Montant total:</strong> <span style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>{formatMontant(detailFacture.montant_total)} €</span></p>
-                      <p><strong>Statut:</strong> {detailFacture.statut_paiement === 'payé' ? 'Payée' : 'Impayée'}</p>
-                      <div className="flex" style={{ justifyContent: 'flex-end', marginTop: '20px' }}>
+
+                      {/* Véhicule */}
+                      <div className="detail-section">
+                        <h4>
+                          <FontAwesomeIcon icon={faCar} style={{ marginRight: '8px' }} />
+                          Véhicule
+                        </h4>
+                        <p><strong>Marque:</strong> {detailFacture.facture?.marque || detailFacture.marque}</p>
+                        <p><strong>Modèle:</strong> {detailFacture.facture?.modele || detailFacture.modele}</p>
+                        <p><strong>Immatriculation:</strong> {detailFacture.facture?.immatriculation || detailFacture.immatriculation}</p>
+                      </div>
+
+                      <hr style={{ borderColor: '#333', margin: '15px 0' }} />
+
+                      {/* Intervention */}
+                      <div className="detail-section">
+                        <h4>
+                          <FontAwesomeIcon icon={faWrench} style={{ marginRight: '8px' }} />
+                          Intervention
+                        </h4>
+                        <p><strong>Intervention #{detailFacture.facture?.intervention_id || detailFacture.intervention_id}</strong></p>
+                        <p><strong>Description:</strong> {detailFacture.facture?.description || detailFacture.description || 'Non renseignée'}</p>
+                      </div>
+
+                      <hr style={{ borderColor: '#333', margin: '15px 0' }} />
+
+                      {/* Détail des coûts */}
+                      <div className="detail-section">
+                        <h4>Détail des coûts</h4>
+                        <p><strong>Prestation:</strong> {formatMontant(detailFacture.prix_intervention)} €</p>
+                        <p><strong>Pièces utilisées:</strong> {formatMontant(detailFacture.total_pieces)} €</p>
+                        <hr />
+                        <p><strong>Total:</strong> <span style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>{formatMontant(detailFacture.montant_total)} €</span></p>
+                      </div>
+
+                      {/* Liste des pièces utilisées */}
+                      {detailFacture.pieces && detailFacture.pieces.length > 0 && (
+                        <>
+                          <hr style={{ borderColor: '#333', margin: '15px 0' }} />
+                          <div className="detail-section">
+                            <h4>
+                              <FontAwesomeIcon icon={faBoxes} style={{ marginRight: '10px' }} />
+                              Pièces utilisées
+                            </h4>
+                            <table className="admin-table">
+                              <thead>
+                                <tr>
+                                  <th>Nom</th>
+                                  <th>Référence</th>
+                                  <th>Quantité</th>
+                                  <th>Prix unitaire</th>
+                                  <th>Total</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {detailFacture.pieces.map((p, idx) => (
+                                  <tr key={idx}>
+                                    <td>{p.nom}</td>
+                                    <td>{p.reference}</td>
+                                    <td>{p.quantite_utilisee}</td>
+                                    <td>{formatMontant(p.prix_unitaire)} €</td>
+                                    <td>{formatMontant(p.total)} €</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex" style={{ justifyContent: 'flex-end', marginTop: '20px', gap: '10px' }}>
+                        <button onClick={() => handleDownload(detailFacture.facture?.id || detailFacture.id)}>
+                          <FontAwesomeIcon icon={faDownload} style={{ marginRight: '5px' }} />
+                          Télécharger PDF
+                        </button>
                         <button onClick={closeDetail}>Fermer</button>
                       </div>
                     </div>

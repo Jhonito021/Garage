@@ -162,15 +162,16 @@ const scanPlaque = async (req, res) => {
     }
 };
 
-// Créer une intervention à partir d'un rendez-vous
+// Créer une intervention à partir d'un rendez-vous (admin)
 const createInterventionFromRdv = async (req, res) => {
-    const { rdv_id, technicien_id } = req.body;
+    const { rdv_id, technicien_id, prix_intervention } = req.body;
 
     if (!rdv_id || !technicien_id) {
         return res.status(400).json({ error: 'rdv_id et technicien_id sont requis' });
     }
 
     try {
+        // Récupérer les informations du rendez-vous
         const [rdv] = await db.query(
             'SELECT vehicule_id, service_demande, date_heure FROM rdv WHERE id = ?',
             [rdv_id]
@@ -180,6 +181,7 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(404).json({ error: 'Rendez-vous non trouvé' });
         }
 
+        // Vérifier si une intervention existe déjà
         const [existing] = await db.query(
             'SELECT id FROM interventions WHERE rdv_id = ?',
             [rdv_id]
@@ -189,6 +191,7 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(400).json({ error: 'Une intervention existe déjà pour ce rendez-vous' });
         }
 
+        // Vérifier que le technicien existe
         const [technicien] = await db.query(
             'SELECT id FROM utilisateurs WHERE id = ? AND role = "technicien"',
             [technicien_id]
@@ -198,6 +201,7 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(404).json({ error: 'Technicien non trouvé' });
         }
 
+        // Vérifier la disponibilité du technicien
         const estDisponible = await checkTechnicienDisponibilite(technicien_id, rdv[0].date_heure);
         
         if (!estDisponible) {
@@ -206,11 +210,12 @@ const createInterventionFromRdv = async (req, res) => {
             });
         }
 
+        // Créer l'intervention avec le prix
         const [result] = await db.query(
             `INSERT INTO interventions 
-            (vehicule_id, technicien_id, rdv_id, statut, description, type_prestation, date_debut) 
-            VALUES (?, ?, ?, "prévue", ?, ?, ?)`,
-            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande, rdv[0].service_demande, rdv[0].date_heure]
+            (vehicule_id, technicien_id, rdv_id, statut, description, type_prestation, date_debut, prix_intervention) 
+            VALUES (?, ?, ?, "prévue", ?, ?, ?, ?)`,
+            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande, rdv[0].service_demande, rdv[0].date_heure, prix_intervention || 0]
         );
 
         res.status(201).json({ 
@@ -266,12 +271,12 @@ const getAllInterventions = async (req, res) => {
 // Modifier une intervention (admin)
 const updateIntervention = async (req, res) => {
     const interventionId = req.params.id;
-    const { technicien_id, description, type_prestation, statut } = req.body;
+    const { technicien_id, description, type_prestation, statut, prix_intervention } = req.body;
 
     try {
         await db.query(
-            'UPDATE interventions SET technicien_id = ?, description = ?, type_prestation = ?, statut = ? WHERE id = ?',
-            [technicien_id, description, type_prestation, statut, interventionId]
+            'UPDATE interventions SET technicien_id = ?, description = ?, type_prestation = ?, statut = ?, prix_intervention = ? WHERE id = ?',
+            [technicien_id, description, type_prestation, statut, prix_intervention, interventionId]
         );
         res.json({ message: 'Intervention modifiée avec succès' });
     } catch (err) {
@@ -293,7 +298,7 @@ const deleteIntervention = async (req, res) => {
     }
 };
 
-// NOUVELLE FONCTION : Récupérer les interventions du client
+// Récupérer les interventions du client
 const getClientInterventions = async (req, res) => {
     if (!req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
@@ -312,6 +317,7 @@ const getClientInterventions = async (req, res) => {
                 i.date_debut,
                 i.date_fin,
                 i.duree_totale,
+                i.prix_intervention,
                 v.immatriculation,
                 v.marque,
                 v.modele,
@@ -324,7 +330,6 @@ const getClientInterventions = async (req, res) => {
             ORDER BY i.date_debut DESC
         `, [req.session.userId]);
         
-        console.log('Interventions client trouvées:', rows.length);
         res.json(rows);
     } catch (err) {
         console.error('Erreur getClientInterventions:', err);
@@ -342,5 +347,5 @@ module.exports = {
     getAllInterventions,
     updateIntervention,
     deleteIntervention,
-    getClientInterventions  // EXPORTER LA NOUVELLE FONCTION
+    getClientInterventions
 };

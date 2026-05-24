@@ -13,7 +13,8 @@ import {
   faPlusCircle,
   faUserCheck,
   faUserSlash,
-  faSyncAlt
+  faSyncAlt,
+  faEuroSign
 } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar';
 import api from '../../services/api';
@@ -28,6 +29,7 @@ function Planning() {
   const [techniciens, setTechniciens] = useState([]);
   const [assignedRdvs, setAssignedRdvs] = useState({});
   const [refreshing, setRefreshing] = useState(false);
+  const [prixIntervention, setPrixIntervention] = useState('');
 
   // Filtrer les rendez-vous par période
   const filterByPeriod = (data, period) => {
@@ -113,19 +115,8 @@ function Planning() {
     }
   };
 
-  // Vérifier la disponibilité d'un technicien
-  const checkDisponibilite = async (technicienId, dateHeure) => {
-    try {
-      const response = await api.get(`/interventions/check-disponibilite?technicien_id=${technicienId}&date_heure=${encodeURIComponent(dateHeure)}`);
-      return response.data.disponible;
-    } catch (err) {
-      console.error('Erreur vérification disponibilité:', err);
-      return false;
-    }
-  };
-
-  // Créer une intervention à partir du rendez-vous avec vérification de disponibilité
-  const createIntervention = async (rdvId, technicienId, dateHeure) => {
+  // Créer une intervention à partir du rendez-vous
+  const createIntervention = async (rdvId, technicienId) => {
     if (!technicienId) {
       alert('Veuillez sélectionner un technicien');
       return;
@@ -133,48 +124,30 @@ function Planning() {
     
     setCreating(true);
     try {
-      // Vérifier d'abord la disponibilité du technicien
-      const disponible = await checkDisponibilite(technicienId, dateHeure);
-      
-      if (!disponible) {
-        alert('Ce technicien est déjà assigné à une autre intervention sur ce créneau');
-        setCreating(false);
-        return;
-      }
-      
       const response = await api.post('/interventions', {
         rdv_id: rdvId,
-        technicien_id: parseInt(technicienId)
+        technicien_id: parseInt(technicienId),
+        prix_intervention: parseFloat(prixIntervention) || 0
       });
       
       console.log('Réponse:', response.data);
       alert('Intervention créée avec succès');
       
-      // Mettre à jour la liste des RDV assignés
       await fetchAssignedRdvs();
+      setPrixIntervention('');
       
     } catch (err) {
       console.error('Erreur:', err);
       let errorMessage = 'Erreur lors de la création';
-      
       if (err.response?.status === 409) {
         errorMessage = err.response.data.error || 'Ce technicien est déjà occupé sur ce créneau';
       } else if (err.response?.data?.error) {
         errorMessage = err.response.data.error;
       }
-      
       alert(errorMessage);
     } finally {
       setCreating(false);
     }
-  };
-
-  // Rafraîchir toutes les données
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchRdvs();
-    fetchTechniciens();
-    fetchAssignedRdvs();
   };
 
   useEffect(() => {
@@ -190,6 +163,13 @@ function Planning() {
 
   const handlePeriodChange = (period) => {
     setFilterPeriod(period);
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchRdvs();
+    fetchTechniciens();
+    fetchAssignedRdvs();
   };
 
   const getPeriodLabel = () => {
@@ -215,17 +195,14 @@ function Planning() {
     }
   };
 
-  // Vérifier si un RDV peut être assigné (uniquement confirmé et non déjà assigné)
   const canAssign = (rdv) => {
     return rdv.statut === 'confirmé' && !assignedRdvs[rdv.id];
   };
 
-  // Vérifier si un RDV est déjà assigné
   const isAssigned = (rdv) => {
     return assignedRdvs[rdv.id]?.assigned;
   };
 
-  // Obtenir le nom du technicien assigné
   const getAssignedTechnicienName = (rdv) => {
     return assignedRdvs[rdv.id]?.technicien_nom || '';
   };
@@ -345,7 +322,6 @@ function Planning() {
                       Statut: {getStatusBadge(r.statut)}
                     </p>
                     
-                    {/* Afficher le technicien assigné si déjà fait */}
                     {isAssigned(r) && (
                       <p style={{ marginTop: '10px', color: 'var(--success)' }}>
                         <FontAwesomeIcon icon={faUserCheck} style={{ marginRight: '8px' }} />
@@ -354,7 +330,7 @@ function Planning() {
                     )}
                   </div>
                   
-                  <div style={{ minWidth: '220px', textAlign: 'right' }}>
+                  <div style={{ minWidth: '260px', textAlign: 'right' }}>
                     {r.statut === 'annulé' ? (
                       <div style={{ padding: '10px', backgroundColor: 'rgba(244, 67, 54, 0.1)', borderRadius: '8px' }}>
                         <FontAwesomeIcon icon={faUserSlash} style={{ marginRight: '8px', color: 'var(--danger)' }} />
@@ -384,12 +360,26 @@ function Planning() {
                             <option key={t.id} value={t.id}>{t.prenom} {t.nom}</option>
                           ))}
                         </select>
+                        <div className="form-group" style={{ marginBottom: '10px' }}>
+                          <label style={{ fontSize: '12px', marginBottom: '5px' }}>
+                            <FontAwesomeIcon icon={faEuroSign} style={{ marginRight: '5px' }} />
+                            Prix intervention (€)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={prixIntervention}
+                            onChange={(e) => setPrixIntervention(e.target.value)}
+                            placeholder="0.00"
+                            style={{ width: '100%', padding: '8px' }}
+                          />
+                        </div>
                         <button 
                           className="btn-success"
                           onClick={() => {
                             const select = document.getElementById(`technicien-${r.id}`);
                             const technicienId = select.value;
-                            createIntervention(r.id, technicienId, r.date_heure);
+                            createIntervention(r.id, technicienId);
                           }}
                           disabled={creating}
                           style={{ width: '100%' }}

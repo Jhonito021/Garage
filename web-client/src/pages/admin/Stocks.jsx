@@ -136,11 +136,11 @@ function Stocks() {
                     <div className="card mt-20">
                         <h3>{editingId ? 'Modifier la pièce' : 'Ajouter une pièce'}</h3>
                         <form onSubmit={handleSubmit}>
-                            <input type="text" name="nom" placeholder="Nom de la pièce" value={formData.nom} onChange={handleChange} required />
-                            <input type="text" name="reference" placeholder="Référence" value={formData.reference} onChange={handleChange} required />
-                            <input type="number" name="quantite_stock" placeholder="Quantité en stock" value={formData.quantite_stock} onChange={handleChange} />
-                            <input type="number" name="seuil_alerte" placeholder="Seuil d'alerte" value={formData.seuil_alerte} onChange={handleChange} />
-                            <input type="number" step="0.01" name="prix_unitaire" placeholder="Prix unitaire (€)" value={formData.prix_unitaire} onChange={handleChange} required />
+                            <label htmlFor="nom">Nom de la pièce:</label><input type="text" name="nom" placeholder="Nom de la pièce" value={formData.nom} onChange={handleChange} required />
+                            <label htmlFor="reference">Référence</label><input type="text" name="reference" placeholder="Référence" value={formData.reference} onChange={handleChange} required />
+                            <label htmlFor="quantite_stock">Quantié stock</label><input type="number" name="quantite_stock" placeholder="Quantité en stock" value={formData.quantite_stock} onChange={handleChange} />
+                            <label htmlFor="seuil_alerte">Seuil alerte</label><input type="number" name="seuil_alerte" placeholder="Seuil d'alerte" value={formData.seuil_alerte} onChange={handleChange} />
+                            <label htmlFor="prix_unitaire">Prix unitaire</label><input type="number" step="0.01" name="prix_unitaire" placeholder="Prix unitaire (€)" value={formData.prix_unitaire} onChange={handleChange} required />
                             <button type="submit">Enregistrer</button>
                         </form>
                     </div>

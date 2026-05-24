@@ -13,7 +13,8 @@ import {
   faHourglassHalf, 
   faExclamationTriangle, 
   faSyncAlt,
-  faTag
+  faTag,
+  faBoxes
 } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../../components/Sidebar';
 import api from '../../services/api';
@@ -23,10 +24,16 @@ function TechnicienInterventions() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showVidangeModal, setShowVidangeModal] = useState(false);
+  const [showPieceModal, setShowPieceModal] = useState(false);
   const [selectedIntervention, setSelectedIntervention] = useState(null);
+  const [pieces, setPieces] = useState([]);
   const [vidangeData, setVidangeData] = useState({
     kilometrage: '',
     type_huile: 'synthétique'
+  });
+  const [pieceData, setPieceData] = useState({
+    piece_id: '',
+    quantite_utilisee: 1
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -45,8 +52,18 @@ function TechnicienInterventions() {
     }
   };
 
+  const fetchPieces = async () => {
+    try {
+      const res = await api.get('/pieces');
+      setPieces(res.data);
+    } catch (err) {
+      console.error('Erreur chargement pièces:', err);
+    }
+  };
+
   useEffect(() => {
     fetchInterventions();
+    fetchPieces();
   }, []);
 
   const handleRefresh = () => {
@@ -54,6 +71,7 @@ function TechnicienInterventions() {
     setError('');
     setSuccess('');
     fetchInterventions();
+    fetchPieces();
   };
 
   const handleStart = async (id) => {
@@ -90,8 +108,18 @@ function TechnicienInterventions() {
     setShowVidangeModal(true);
   };
 
+  const openPieceModal = (intervention) => {
+    setSelectedIntervention(intervention);
+    setPieceData({ piece_id: '', quantite_utilisee: 1 });
+    setShowPieceModal(true);
+  };
+
   const handleVidangeChange = (e) => {
     setVidangeData({ ...vidangeData, [e.target.name]: e.target.value });
+  };
+
+  const handlePieceChange = (e) => {
+    setPieceData({ ...pieceData, [e.target.name]: e.target.value });
   };
 
   const submitVidange = async () => {
@@ -114,6 +142,28 @@ function TechnicienInterventions() {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur lors de l\'enregistrement de la vidange');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  const submitUtiliserPiece = async () => {
+    if (!pieceData.piece_id) {
+      setError('Veuillez sélectionner une pièce');
+      return;
+    }
+
+    try {
+      await api.post('/pieces/utiliser', {
+        intervention_id: selectedIntervention.id,
+        piece_id: pieceData.piece_id,
+        quantite_utilisee: pieceData.quantite_utilisee
+      });
+      setSuccess('Pièce utilisée avec succès');
+      setShowPieceModal(false);
+      fetchPieces();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur lors de l\'utilisation');
       setTimeout(() => setError(''), 3000);
     }
   };
@@ -295,6 +345,10 @@ function TechnicienInterventions() {
                             <FontAwesomeIcon icon={faOilCan} style={{ marginRight: '5px' }} />
                             Enregistrer vidange
                           </button>
+                          <button onClick={() => openPieceModal(i)} className="btn-accent">
+                            <FontAwesomeIcon icon={faBoxes} style={{ marginRight: '5px' }} />
+                            Utiliser pièce
+                          </button>
                         </>
                       )}
                     </div>
@@ -354,6 +408,60 @@ function TechnicienInterventions() {
               <div className="flex gap-10" style={{ justifyContent: 'flex-end', marginTop: '20px' }}>
                 <button onClick={() => setShowVidangeModal(false)} className="btn-outline">Annuler</button>
                 <button onClick={submitVidange}>Enregistrer la vidange</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal d'utilisation de pièce */}
+      {showPieceModal && selectedIntervention && (
+        <div className="modal-overlay" onClick={() => setShowPieceModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="modal-header">
+              <h3>
+                <FontAwesomeIcon icon={faBoxes} style={{ marginRight: '10px' }} />
+                Utiliser une pièce
+              </h3>
+              <span className="modal-close" onClick={() => setShowPieceModal(false)}>&times;</span>
+            </div>
+            <div>
+              <p><strong>Intervention:</strong> {selectedIntervention.type_prestation || selectedIntervention.description}</p>
+              <p><strong>Véhicule:</strong> {selectedIntervention.marque} {selectedIntervention.modele}</p>
+              <hr style={{ borderColor: '#333', margin: '15px 0' }} />
+              
+              <div className="form-group">
+                <label>Pièce</label>
+                <select 
+                  name="piece_id" 
+                  value={pieceData.piece_id} 
+                  onChange={handlePieceChange}
+                  required
+                >
+                  <option value="">Sélectionner une pièce</option>
+                  {pieces.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.nom} - {p.reference} (stock: {p.quantite_stock})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label>Quantité</label>
+                <input
+                  type="number"
+                  name="quantite_utilisee"
+                  value={pieceData.quantite_utilisee}
+                  onChange={handlePieceChange}
+                  min="1"
+                  required
+                />
+              </div>
+              
+              <div className="flex gap-10" style={{ justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button onClick={() => setShowPieceModal(false)} className="btn-outline">Annuler</button>
+                <button onClick={submitUtiliserPiece}>Utiliser</button>
               </div>
             </div>
           </div>
