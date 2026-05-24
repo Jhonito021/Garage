@@ -61,19 +61,24 @@ function Navbar() {
                         <FontAwesomeIcon icon={faFileInvoice} style={{ marginRight: '5px' }} />
                         Factures
                     </Link>
-                    <Link to="/profil">
+                    {/* <Link to="/profil">
                         <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />
                         Mon profil
-                    </Link>
+                    </Link> */}
                 </div>
             )}
             <div className="navbar-user">
                 {isLoggedIn ? (
                     <>
-                        <span>
+                        {/* <span>
                             <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />
                             {user.prenom} {user.nom}
-                        </span>
+                        </span> */}
+                        <Link to="/profil">
+                            <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />
+                            {user.prenom} {user.nom}    
+                        </Link>
+                        
                         <button onClick={handleLogout}>
                             <FontAwesomeIcon icon={faSignOutAlt} style={{ marginRight: '5px' }} />
                             Déconnexion

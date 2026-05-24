@@ -1,71 +1,79 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faWrench, 
+  faChartLine, 
   faCar, 
+  faWrench, 
   faCalendarAlt, 
   faClock, 
   faCheckCircle, 
   faHourglassHalf, 
   faPlayCircle,
-  faUser,
+  faFilter,
   faSearch,
-  faSyncAlt
+  faUser
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../../services/api';
 
-function SuiviInterventions() {
+function SuiviIntervention() {
   const [interventions, setInterventions] = useState([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    en_cours: 0,
-    terminees: 0,
-    prevues: 0
-  });
+  const [filteredInterventions, setFilteredInterventions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchInterventions = async () => {
-    try {
-      const [interventionsRes, statsRes] = await Promise.all([
-        api.get('/suivi/interventions'),
-        api.get('/suivi/interventions/stats')
-      ]);
-      
-      console.log('Interventions reçues:', interventionsRes.data);
-      console.log('Stats reçues:', statsRes.data);
-      
-      setInterventions(interventionsRes.data);
-      setStats(statsRes.data);
-    } catch (err) {
-      console.error('Erreur:', err);
-      console.error('Response:', err.response);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    const fetchInterventions = async () => {
+      try {
+        const res = await api.get('/suivi/interventions');
+        console.log('Interventions reçues:', res.data);
+        setInterventions(res.data);
+        setFilteredInterventions(res.data);
+      } catch (err) {
+        console.error('Erreur:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchInterventions();
   }, []);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchInterventions();
-  };
+  useEffect(() => {
+    let result = [...interventions];
+    
+    // Filtre par statut
+    if (filter !== 'all') {
+      if (filter === 'en_cours') {
+        result = result.filter(i => i.statut === 'en_cours');
+      } else if (filter === 'en_attente') {
+        result = result.filter(i => i.statut === 'prévue' || !i.statut);
+      } else if (filter === 'terminee') {
+        result = result.filter(i => i.statut === 'terminée');
+      }
+    }
+    
+    // Filtre par recherche
+    if (searchTerm) {
+      result = result.filter(i => 
+        i.immatriculation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        i.marque?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        i.modele?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    setFilteredInterventions(result);
+  }, [filter, searchTerm, interventions]);
 
   const getStatusIcon = (statut) => {
     switch(statut) {
       case 'terminée':
-        return <FontAwesomeIcon icon={faCheckCircle} size={24} color="#4caf50" />;
+        return <FontAwesomeIcon icon={faCheckCircle} style={{ color: '#4caf50', marginRight: '8px' }} />;
       case 'en_cours':
-        return <FontAwesomeIcon icon={faPlayCircle} size={24} color="#ff9800" />;
+        return <FontAwesomeIcon icon={faPlayCircle} style={{ color: '#ff9800', marginRight: '8px' }} />;
       case 'prévue':
-        return <FontAwesomeIcon icon={faHourglassHalf} size={24} color="#2196f3" />;
+        return <FontAwesomeIcon icon={faHourglassHalf} style={{ color: '#2196f3', marginRight: '8px' }} />;
       default:
-        return <FontAwesomeIcon icon={faHourglassHalf} size={24} color="#aaaaaa" />;
+        return <FontAwesomeIcon icon={faHourglassHalf} style={{ color: '#aaaaaa', marginRight: '8px' }} />;
     }
   };
 
@@ -95,16 +103,23 @@ function SuiviInterventions() {
     }
   };
 
-  const filteredInterventions = interventions.filter(i =>
-    i.immatriculation?.toLowerCase().includes(filter.toLowerCase()) ||
-    i.marque?.toLowerCase().includes(filter.toLowerCase()) ||
-    i.modele?.toLowerCase().includes(filter.toLowerCase())
-  );
+  const getStats = () => {
+    const total = interventions.length;
+    const enCours = interventions.filter(i => i.statut === 'en_cours').length;
+    const terminees = interventions.filter(i => i.statut === 'terminée').length;
+    const enAttente = interventions.filter(i => i.statut === 'prévue' || !i.statut).length;
+    return { total, enCours, terminees, enAttente };
+  };
+
+  const stats = getStats();
 
   if (loading) {
     return (
-      <div className="container text-center" style={{ padding: '50px' }}>
-        <div className="loading">Chargement de vos interventions...</div>
+      <div className="container text-center">
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Chargement de vos interventions...</p>
+        </div>
       </div>
     );
   }
@@ -113,20 +128,16 @@ function SuiviInterventions() {
     <div className="container">
       <div className="flex-between" style={{ marginBottom: '30px', flexWrap: 'wrap' }}>
         <h1>
-          <FontAwesomeIcon icon={faWrench} style={{ marginRight: '10px' }} />
+          <FontAwesomeIcon icon={faChartLine} style={{ marginRight: '10px' }} />
           Suivi des interventions
         </h1>
-        <button onClick={handleRefresh} disabled={refreshing}>
-          <FontAwesomeIcon icon={faSyncAlt} style={{ marginRight: '5px' }} />
-          {refreshing ? 'Actualisation...' : 'Actualiser'}
-        </button>
       </div>
 
       {/* Statistiques */}
       <div className="grid-4" style={{ marginBottom: '30px' }}>
         <div className="card text-center">
           <div style={{ fontSize: '2rem', color: 'var(--secondary-color)' }}>
-            <FontAwesomeIcon icon={faWrench} />
+            <FontAwesomeIcon icon={faChartLine} />
           </div>
           <h3>Total</h3>
           <p style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{stats.total}</p>
@@ -137,7 +148,15 @@ function SuiviInterventions() {
             <FontAwesomeIcon icon={faPlayCircle} />
           </div>
           <h3>En cours</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#ff9800' }}>{stats.en_cours}</p>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#ff9800' }}>{stats.enCours}</p>
+          <p className="text-light">intervention(s)</p>
+        </div>
+        <div className="card text-center">
+          <div style={{ fontSize: '2rem', color: '#2196f3' }}>
+            <FontAwesomeIcon icon={faHourglassHalf} />
+          </div>
+          <h3>En attente</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#2196f3' }}>{stats.enAttente}</p>
           <p className="text-light">intervention(s)</p>
         </div>
         <div className="card text-center">
@@ -148,34 +167,64 @@ function SuiviInterventions() {
           <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4caf50' }}>{stats.terminees}</p>
           <p className="text-light">intervention(s)</p>
         </div>
-        <div className="card text-center">
-          <div style={{ fontSize: '2rem', color: '#2196f3' }}>
-            <FontAwesomeIcon icon={faHourglassHalf} />
-          </div>
-          <h3>En attente</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#2196f3' }}>{stats.prevues}</p>
-          <p className="text-light">intervention(s)</p>
-        </div>
       </div>
 
-      {/* Barre de recherche */}
+      {/* Barre de filtres */}
       <div className="card" style={{ marginBottom: '20px' }}>
-        <div className="flex" style={{ alignItems: 'center', gap: '10px' }}>
-          <FontAwesomeIcon icon={faSearch} style={{ color: 'var(--text-light)' }} />
-          <input 
-            type="text" 
-            placeholder="Rechercher par véhicule ou immatriculation..." 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value)}
-            style={{ marginBottom: 0 }}
-          />
+        <div className="flex-between" style={{ flexWrap: 'wrap', gap: '15px' }}>
+          <div className="flex gap-10">
+            <button 
+              onClick={() => setFilter('all')}
+              className={filter === 'all' ? 'btn-primary' : 'btn-outline'}
+              style={{ padding: '8px 15px' }}
+            >
+              <FontAwesomeIcon icon={faFilter} style={{ marginRight: '5px' }} />
+              Toutes
+            </button>
+            <button 
+              onClick={() => setFilter('en_cours')}
+              className={filter === 'en_cours' ? 'btn-primary' : 'btn-outline'}
+              style={{ padding: '8px 15px' }}
+            >
+              <FontAwesomeIcon icon={faPlayCircle} style={{ marginRight: '5px' }} />
+              En cours
+            </button>
+            <button 
+              onClick={() => setFilter('en_attente')}
+              className={filter === 'en_attente' ? 'btn-primary' : 'btn-outline'}
+              style={{ padding: '8px 15px' }}
+            >
+              <FontAwesomeIcon icon={faHourglassHalf} style={{ marginRight: '5px' }} />
+              En attente
+            </button>
+            <button 
+              onClick={() => setFilter('terminee')}
+              className={filter === 'terminee' ? 'btn-primary' : 'btn-outline'}
+              style={{ padding: '8px 15px' }}
+            >
+              <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '5px' }} />
+              Terminées
+            </button>
+          </div>
+          <div style={{ width: '250px' }}>
+            <div className="flex" style={{ alignItems: 'center', gap: '10px' }}>
+              <FontAwesomeIcon icon={faSearch} style={{ color: 'var(--text-light)' }} />
+              <input 
+                type="text" 
+                placeholder="Rechercher par véhicule..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ marginBottom: 0 }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Liste des interventions */}
+      {/* Liste des interventions filtrées */}
       {filteredInterventions.length === 0 ? (
         <div className="card text-center">
-          <FontAwesomeIcon icon={faWrench} style={{ fontSize: '3rem', color: 'var(--text-light)', marginBottom: '15px' }} />
+          <FontAwesomeIcon icon={faChartLine} style={{ fontSize: '3rem', color: 'var(--text-light)', marginBottom: '15px' }} />
           <p>Aucune intervention trouvée</p>
         </div>
       ) : (
@@ -185,7 +234,7 @@ function SuiviInterventions() {
               key={i.id} 
               className="card mb-20" 
               style={{ 
-                borderLeft: `4px solid ${getStatusColor(i.statut)}`,
+                borderLeft: `4px solid ${getStatusColor(i.statut)}`
               }}
             >
               <div className="flex-between" style={{ flexWrap: 'wrap' }}>
@@ -242,4 +291,4 @@ function SuiviInterventions() {
   );
 }
 
-export default SuiviInterventions;
+export default SuiviIntervention;

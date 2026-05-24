@@ -267,34 +267,48 @@ function TechnicienInterventions() {
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-10" style={{ marginTop: '10px', flexWrap: 'wrap' }}>
-                    {i.statut === 'prévue' && (
-                      <button 
-                        onClick={() => handleStart(i.id)}
-                        disabled={!canStart(i)}
-                        style={{ 
-                          opacity: !canStart(i) ? 0.5 : 1,
-                          cursor: !canStart(i) ? 'not-allowed' : 'pointer'
-                        }}
-                        title={!canStart(i) ? "Intervention non disponible à la date actuelle" : ""}
-                      >
-                        <FontAwesomeIcon icon={faPlay} style={{ marginRight: '5px' }} />
-                        Démarrer
-                      </button>
-                    )}
-                    {i.statut === 'en_cours' && (
-                      <>
-                        <button onClick={() => handleEnd(i.id)}>
-                          <FontAwesomeIcon icon={faCheck} style={{ marginRight: '5px' }} />
-                          Terminer
+                  
+                  {/* Boutons d'action - uniquement si non terminée */}
+                  {i.statut !== 'terminée' && (
+                    <div className="flex gap-10" style={{ marginTop: '10px', flexWrap: 'wrap' }}>
+                      {i.statut === 'prévue' && (
+                        <button 
+                          onClick={() => handleStart(i.id)}
+                          disabled={!canStart(i)}
+                          style={{ 
+                            opacity: !canStart(i) ? 0.5 : 1,
+                            cursor: !canStart(i) ? 'not-allowed' : 'pointer'
+                          }}
+                          title={!canStart(i) ? "Intervention non disponible à la date actuelle" : ""}
+                        >
+                          <FontAwesomeIcon icon={faPlay} style={{ marginRight: '5px' }} />
+                          Démarrer
                         </button>
-                        <button onClick={() => openVidangeModal(i)} className="btn-accent">
-                          <FontAwesomeIcon icon={faOilCan} style={{ marginRight: '5px' }} />
-                          Enregistrer vidange
-                        </button>
-                      </>
-                    )}
-                  </div>
+                      )}
+                      {i.statut === 'en_cours' && (
+                        <>
+                          <button onClick={() => handleEnd(i.id)}>
+                            <FontAwesomeIcon icon={faCheck} style={{ marginRight: '5px' }} />
+                            Terminer
+                          </button>
+                          <button onClick={() => openVidangeModal(i)} className="btn-accent">
+                            <FontAwesomeIcon icon={faOilCan} style={{ marginRight: '5px' }} />
+                            Enregistrer vidange
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Message pour intervention terminée */}
+                  {i.statut === 'terminée' && (
+                    <div className="text-center" style={{ marginTop: '10px', padding: '10px', backgroundColor: 'rgba(76, 175, 80, 0.1)', borderRadius: '5px', minWidth: '200px' }}>
+                      <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '8px', color: '#4caf50' }} />
+                      <span className="text-success">Intervention terminée</span>
+                      <br />
+                      <span className="text-light" style={{ fontSize: '12px' }}>Aucune action possible</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

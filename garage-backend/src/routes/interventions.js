@@ -8,7 +8,8 @@ const {
     checkDisponibilite,
     getAllInterventions,
     updateIntervention,
-    deleteIntervention
+    deleteIntervention,
+    getClientInterventions  // IMPORTER LA NOUVELLE FONCTION
 } = require('../controllers/interventionController');
 const router = express.Router();
 
@@ -24,7 +25,10 @@ router.get('/all', getAllInterventions);
 router.put('/:id', updateIntervention);
 router.delete('/:id', deleteIntervention);
 
-// Route pour vérifier la disponibilité d'un technicien
+// Route pour vérifier la disponibilité
 router.get('/check-disponibilite', checkDisponibilite);
+
+// Route pour les interventions du client
+router.get('/client', getClientInterventions);
 
 module.exports = router;
