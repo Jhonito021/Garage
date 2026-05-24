@@ -68,13 +68,15 @@ const getFactureById = async (req, res) => {
         `, [facture[0].intervention_id]);
         
         const totalPieces = pieces.reduce((sum, p) => sum + p.total, 0);
+        const prixPrestation = parseFloat(facture[0].prix_intervention) || 0;
+        const montantTotal = prixPrestation + totalPieces;
         
         res.json({ 
             facture: facture[0], 
             pieces: pieces,
-            prix_intervention: facture[0].prix_intervention,
+            prix_prestation: prixPrestation,
             total_pieces: totalPieces,
-            montant_total: facture[0].montant_total
+            montant_total: montantTotal
         });
     } catch (err) {
         console.error('Erreur getFactureById:', err);
@@ -118,8 +120,8 @@ const createFacture = async (req, res) => {
 
         // Calculer le total des pièces utilisées
         const totalPieces = await calculerTotalPieces(intervention_id);
-        const prixIntervention = parseFloat(intervention[0].prix_intervention) || 0;
-        const montantTotal = prixIntervention + totalPieces;
+        const prixPrestation = parseFloat(intervention[0].prix_intervention) || 0;
+        const montantTotal = prixPrestation + totalPieces;
 
         const [result] = await db.query(
             `INSERT INTO factures 
@@ -132,7 +134,7 @@ const createFacture = async (req, res) => {
             id: result.insertId, 
             message: 'Facture créée avec succès',
             details: {
-                prix_intervention: prixIntervention,
+                prix_prestation: prixPrestation,
                 total_pieces: totalPieces,
                 montant_total: montantTotal
             }

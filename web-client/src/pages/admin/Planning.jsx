@@ -30,6 +30,36 @@ function Planning() {
   const [assignedRdvs, setAssignedRdvs] = useState({});
   const [refreshing, setRefreshing] = useState(false);
   const [prixIntervention, setPrixIntervention] = useState('');
+  const [tarifs, setTarifs] = useState({});
+  const [selectedRdvService, setSelectedRdvService] = useState('');
+
+  // Récupérer les tarifs
+  const fetchTarifs = async () => {
+    try {
+      const res = await api.get('/configurations/all');
+      const tarifsData = {};
+      res.data.forEach(item => {
+        if (item.cle.startsWith('tarif_')) {
+          tarifsData[item.cle] = item.valeur;
+        }
+      });
+      setTarifs(tarifsData);
+    } catch (err) {
+      console.error('Erreur chargement tarifs:', err);
+    }
+  };
+
+  // Obtenir le tarif selon le service
+  const getTarifByService = (service) => {
+    const tarifMap = {
+      'Vidange': tarifs.tarif_vidange,
+      'Contrôle technique': tarifs.tarif_ct,
+      'Réparation': tarifs.tarif_reparation,
+      'Entretien courant': tarifs.tarif_entretien,
+      'Pneumatiques': tarifs.tarif_pneumatiques
+    };
+    return tarifMap[service] || '0';
+  };
 
   // Filtrer les rendez-vous par période
   const filterByPeriod = (data, period) => {
@@ -135,6 +165,7 @@ function Planning() {
       
       await fetchAssignedRdvs();
       setPrixIntervention('');
+      setSelectedRdvService('');
       
     } catch (err) {
       console.error('Erreur:', err);
@@ -151,6 +182,7 @@ function Planning() {
   };
 
   useEffect(() => {
+    fetchTarifs();
     fetchRdvs();
     fetchTechniciens();
     fetchAssignedRdvs();
@@ -167,6 +199,7 @@ function Planning() {
 
   const handleRefresh = () => {
     setRefreshing(true);
+    fetchTarifs();
     fetchRdvs();
     fetchTechniciens();
     fetchAssignedRdvs();
@@ -193,10 +226,6 @@ function Planning() {
       default:
         return <span className="badge badge-info">{statut}</span>;
     }
-  };
-
-  const canAssign = (rdv) => {
-    return rdv.statut === 'confirmé' && !assignedRdvs[rdv.id];
   };
 
   const isAssigned = (rdv) => {
@@ -354,13 +383,19 @@ function Planning() {
                           className="form-control"
                           style={{ marginBottom: '10px', padding: '8px', width: '100%' }}
                           defaultValue=""
+                          onChange={(e) => {
+                            // Quand on sélectionne un technicien, on pré-remplit le prix
+                            setSelectedRdvService(r.service_demande);
+                            setPrixIntervention(getTarifByService(r.service_demande));
+                          }}
                         >
                           <option value="">Choisir un technicien</option>
                           {techniciens.map(t => (
                             <option key={t.id} value={t.id}>{t.prenom} {t.nom}</option>
                           ))}
                         </select>
-                        <div className="form-group" style={{ marginBottom: '10px' }}>
+                        
+                        {/* <div className="form-group" style={{ marginBottom: '10px' }}>
                           <label style={{ fontSize: '12px', marginBottom: '5px' }}>
                             <FontAwesomeIcon icon={faEuroSign} style={{ marginRight: '5px' }} />
                             Prix intervention (€)
@@ -368,12 +403,16 @@ function Planning() {
                           <input
                             type="number"
                             step="0.01"
-                            value={prixIntervention}
+                            value={prixIntervention || getTarifByService(r.service_demande)}
                             onChange={(e) => setPrixIntervention(e.target.value)}
                             placeholder="0.00"
                             style={{ width: '100%', padding: '8px' }}
                           />
-                        </div>
+                          <small className="text-light">
+                            Tarif par défaut: {getTarifByService(r.service_demande)} €
+                          </small>
+                        </div> */}
+                        
                         <button 
                           className="btn-success"
                           onClick={() => {

@@ -162,7 +162,7 @@ const scanPlaque = async (req, res) => {
     }
 };
 
-// Créer une intervention à partir d'un rendez-vous (admin)
+// Créer une intervention à partir d'un rendez-vous (avec tarif automatique)
 const createInterventionFromRdv = async (req, res) => {
     const { rdv_id, technicien_id, prix_intervention } = req.body;
 
@@ -179,6 +179,28 @@ const createInterventionFromRdv = async (req, res) => {
         
         if (rdv.length === 0) {
             return res.status(404).json({ error: 'Rendez-vous non trouvé' });
+        }
+
+        // Récupérer le tarif par défaut selon le service
+        const tarifMap = {
+            'Vidange': 'tarif_vidange',
+            'Contrôle technique': 'tarif_ct',
+            'Réparation': 'tarif_reparation',
+            'Entretien courant': 'tarif_entretien',
+            'Pneumatiques': 'tarif_pneumatiques'
+        };
+        
+        const tarifKey = tarifMap[rdv[0].service_demande];
+        let prix = prix_intervention || 0;
+        
+        if (tarifKey && (!prix_intervention || prix_intervention === 0)) {
+            const [tarif] = await db.query(
+                'SELECT valeur FROM configurations WHERE cle = ?',
+                [tarifKey]
+            );
+            if (tarif.length > 0) {
+                prix = parseFloat(tarif[0].valeur) || 0;
+            }
         }
 
         // Vérifier si une intervention existe déjà
@@ -215,12 +237,13 @@ const createInterventionFromRdv = async (req, res) => {
             `INSERT INTO interventions 
             (vehicule_id, technicien_id, rdv_id, statut, description, type_prestation, date_debut, prix_intervention) 
             VALUES (?, ?, ?, "prévue", ?, ?, ?, ?)`,
-            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande, rdv[0].service_demande, rdv[0].date_heure, prix_intervention || 0]
+            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande, rdv[0].service_demande, rdv[0].date_heure, prix]
         );
 
         res.status(201).json({ 
             id: result.insertId, 
-            message: 'Intervention créée avec succès' 
+            message: 'Intervention créée avec succès',
+            prix_applique: prix
         });
     } catch (err) {
         console.error('Erreur création intervention:', err);
