@@ -10,17 +10,19 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const [userRole, setUserRole] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
-      const userData = await AsyncStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setUserRole(user.role);
+      try {
+        const userData = await AsyncStorage.getItem('user');
+        setIsLoggedIn(!!userData);
+      } catch (error) {
+        console.error('Erreur checkUser:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     checkUser();
   }, []);
@@ -32,14 +34,14 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!userRole ? (
+        {!isLoggedIn ? (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
           </>
         ) : (
-          <Stack.Screen name="Client" component={ClientNavigator} />
+          <Stack.Screen name="Main" component={ClientNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
-import Header from '../../components/Header';
 
 export default function FacturesScreen() {
   const [factures, setFactures] = useState([]);
@@ -97,16 +96,13 @@ export default function FacturesScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Header title="Mes factures" />
-        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
+        <ActivityIndicator size="large" color="#e94560" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Header title="Mes factures" />
-
       {factures.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="document-text" size={60} color="#aaaaaa" />
@@ -135,10 +131,9 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#121212',
-  },
-  loader: {
-    marginTop: 50,
   },
   listContent: {
     padding: 15,

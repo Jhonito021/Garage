@@ -11,7 +11,7 @@ import {
   faKey,
   faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
-import api from '../services/api';
+import api from '../../services/api';
 
 function Profil() {
   const [user, setUser] = useState(null);

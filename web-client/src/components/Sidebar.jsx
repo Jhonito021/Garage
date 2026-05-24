@@ -65,7 +65,6 @@ function Sidebar() {
                 <div className="admin-sidebar-footer">
                     <button onClick={handleLogout}>
                         <FontAwesomeIcon icon={faSignOutAlt} style={{ marginRight: '10px' }} />
-                        Déconnexion
                     </button>
                 </div>
             </div>

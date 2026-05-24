@@ -814,3 +814,38 @@ label {
         gap: 15px;
     }
 }
+
+/* Profil */
+.profil-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.info-row {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.info-label {
+    width: 150px;
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+.info-value {
+    flex: 1;
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .info-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .info-label {
+        width: 100%;
+    }
+}

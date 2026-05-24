@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
-import Header from '../../components/Header';
 
 export default function SuiviScreen() {
   const [interventions, setInterventions] = useState([]);
@@ -80,15 +79,13 @@ export default function SuiviScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Header title="Suivi des interventions" />
-        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
+        <ActivityIndicator size="large" color="#e94560" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Header title="Suivi des interventions" />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -149,10 +146,9 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#121212',
-  },
-  loader: {
-    marginTop: 50,
   },
   content: {
     padding: 15,
@@ -194,8 +190,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
   },

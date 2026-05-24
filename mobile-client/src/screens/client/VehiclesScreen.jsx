@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
-import Header from '../../components/Header';
 
 export default function VehiclesScreen() {
   const [vehicules, setVehicules] = useState([]);
@@ -144,15 +143,13 @@ export default function VehiclesScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Header title="Mes véhicules" />
-        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
+        <ActivityIndicator size="large" color="#e94560" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Header title="Mes véhicules" />
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Ionicons name="add" size={16} color="#fff" />
         <Text style={styles.addButtonText}>Ajouter un véhicule</Text>
@@ -248,10 +245,9 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#121212',
-  },
-  loader: {
-    marginTop: 50,
   },
   addButton: {
     flexDirection: 'row',

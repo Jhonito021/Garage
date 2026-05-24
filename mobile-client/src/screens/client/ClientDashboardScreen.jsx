@@ -11,7 +11,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
-import Header from '../../components/Header';
 
 export default function ClientDashboardScreen({ navigation }) {
   const [vehicules, setVehicules] = useState([]);
@@ -19,17 +18,19 @@ export default function ClientDashboardScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchData = async () => {
     try {
-      const [vehiculesRes, rdvRes] = await Promise.all([
-        api.get('/vehicules'),
-        api.get('/rdv'),
-      ]);
-      setVehicules(vehiculesRes.data);
-      setRdv(rdvRes.data);
+      const vehiculesRes = await api.get('/vehicules');
+      const rdvRes = await api.get('/rdv');
+      
+      setVehicules(Array.isArray(vehiculesRes.data) ? vehiculesRes.data : []);
+      setRdv(Array.isArray(rdvRes.data) ? rdvRes.data : []);
+      setError('');
     } catch (err) {
-      console.error(err);
+      console.error('Erreur:', err);
+      setError('Erreur de chargement');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -39,9 +40,7 @@ export default function ClientDashboardScreen({ navigation }) {
   useEffect(() => {
     const loadUser = async () => {
       const userData = await AsyncStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      }
+      if (userData) setUser(JSON.parse(userData));
     };
     loadUser();
     fetchData();
@@ -55,15 +54,24 @@ export default function ClientDashboardScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Header title="Tableau de bord" />
-        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
+        <ActivityIndicator size="large" color="#e94560" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
+          <Text style={styles.retryButtonText}>Réessayer</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Header title="Tableau de bord" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -95,9 +103,9 @@ export default function ClientDashboardScreen({ navigation }) {
           )}
           <TouchableOpacity
             style={styles.cardButton}
-            onPress={() => navigation.navigate('Vehicules')}
+            onPress={() => navigation.navigate('Véhicules')}
           >
-            <Ionicons name={vehicules.length === 0 ? "add" : "eye"} size={14} color="#fff" />
+            <Ionicons name={vehicules.length === 0 ? "add" : "eye"} size={16} color="#fff" />
             <Text style={styles.cardButtonText}>
               {vehicules.length === 0 ? 'Ajouter un véhicule' : 'Voir tous mes véhicules'}
             </Text>
@@ -125,9 +133,9 @@ export default function ClientDashboardScreen({ navigation }) {
           )}
           <TouchableOpacity
             style={styles.cardButton}
-            onPress={() => navigation.navigate('Rdv')}
+            onPress={() => navigation.navigate('Rendez-vous')}
           >
-            <Ionicons name="add" size={14} color="#fff" />
+            <Ionicons name="add" size={16} color="#fff" />
             <Text style={styles.cardButtonText}>Prendre rendez-vous</Text>
           </TouchableOpacity>
         </View>
@@ -146,7 +154,7 @@ export default function ClientDashboardScreen({ navigation }) {
               </Text>
               <TouchableOpacity
                 style={styles.reminderButton}
-                onPress={() => navigation.navigate('Vehicules')}
+                onPress={() => navigation.navigate('Véhicules')}
               >
                 <Text style={styles.reminderButtonText}>Voir mes véhicules</Text>
               </TouchableOpacity>
@@ -165,10 +173,22 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#121212',
   },
-  loader: {
-    marginTop: 50,
+  errorText: {
+    color: '#e94560',
+    fontSize: 16,
+  },
+  retryButton: {
+    backgroundColor: '#e94560',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  retryButtonText: {
+    color: '#fff',
   },
   scrollContent: {
     padding: 15,

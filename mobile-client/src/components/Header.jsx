@@ -1,16 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Header({ title, showBack = false }) {
   const navigation = useNavigation();
-
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('user');
-    navigation.replace('Home');
-  };
 
   return (
     <View style={styles.header}>
@@ -20,9 +14,7 @@ export default function Header({ title, showBack = false }) {
         </TouchableOpacity>
       )}
       <Text style={styles.title}>{title}</Text>
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Ionicons name="log-out" size={20} color="#e94560" />
-      </TouchableOpacity>
+      {/* Bouton de déconnexion temporairement désactivé */}
     </View>
   );
 }

@@ -34,12 +34,12 @@ export default function LoginScreen({ navigation }) {
 
       if (response.data.user) {
         await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
-        navigation.replace('Client');
+        navigation.replace('Main');
       } else {
         Alert.alert('Erreur', 'Email ou mot de passe incorrect');
       }
     } catch (err) {
-      Alert.alert('Erreur', err.response?.data?.error || 'Erreur de connexion');
+      Alert.alert('Erreur', err.message || 'Erreur de connexion');
     } finally {
       setLoading(false);
     }

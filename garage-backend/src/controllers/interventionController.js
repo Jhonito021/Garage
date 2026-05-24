@@ -5,7 +5,7 @@ const checkTechnicienDisponibilite = async (technicien_id, date_heure) => {
     // Récupérer la date de début et fin estimée (2 heures par défaut)
     const dateDebut = new Date(date_heure);
     const dateFin = new Date(dateDebut);
-    dateFin.setHours(dateFin.getHours() + 2); // Durée estimée de 2 heures
+    dateFin.setHours(dateFin.getHours() + 2);
     
     const [rows] = await db.query(
         `SELECT i.* 
@@ -72,17 +72,13 @@ const startIntervention = async (req, res) => {
         const intervention = check[0];
         
         // VÉRIFICATION DE LA DATE
-        // Tolérance de ±1 jour par rapport à la date prévue du rendez-vous
         const dateActuelle = new Date();
         const datePrevue = intervention.rdv_date ? new Date(intervention.rdv_date) : new Date(intervention.date_debut);
         
-        // Vérifier si la date est valide
         if (datePrevue && !isNaN(datePrevue.getTime())) {
-            // Calculer la différence en jours
             const diffTime = Math.abs(dateActuelle - datePrevue);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
-            // Si la différence est supérieure à 1 jour, bloquer
             if (diffDays > 1) {
                 return res.status(400).json({ 
                     error: 'Impossible de démarrer cette intervention car la date actuelle ne correspond pas à la date prévue par le client.',
@@ -92,7 +88,6 @@ const startIntervention = async (req, res) => {
             }
         }
 
-        // Vérifier si l'intervention n'est pas déjà démarrée
         if (intervention.statut === 'en_cours') {
             return res.status(400).json({ error: 'Cette intervention est déjà en cours' });
         }
@@ -103,9 +98,7 @@ const startIntervention = async (req, res) => {
 
         await db.query('UPDATE interventions SET statut = "en_cours", date_debut = NOW() WHERE id = ?', [interventionId]);
         
-        res.json({ 
-            message: 'Intervention démarrée avec succès'
-        });
+        res.json({ message: 'Intervention démarrée avec succès' });
     } catch (err) {
         console.error('Erreur startIntervention:', err);
         res.status(500).json({ error: err.message });
@@ -121,7 +114,6 @@ const endIntervention = async (req, res) => {
     const interventionId = req.params.id;
 
     try {
-        // Vérifier que l'intervention appartient au technicien
         const [check] = await db.query(
             'SELECT * FROM interventions WHERE id = ? AND technicien_id = ?',
             [interventionId, req.session.userId]
@@ -173,7 +165,7 @@ const scanPlaque = async (req, res) => {
     }
 };
 
-// Créer une intervention à partir d'un rendez-vous (pour admin) - AVEC VÉRIFICATION DISPONIBILITÉ
+// Créer une intervention à partir d'un rendez-vous (pour admin)
 const createInterventionFromRdv = async (req, res) => {
     const { rdv_id, technicien_id } = req.body;
 
@@ -192,7 +184,7 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(404).json({ error: 'Rendez-vous non trouvé' });
         }
 
-        // Vérifier si une intervention existe déjà pour ce rdv
+        // Vérifier si une intervention existe déjà
         const [existing] = await db.query(
             'SELECT id FROM interventions WHERE rdv_id = ?',
             [rdv_id]
@@ -212,7 +204,7 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(404).json({ error: 'Technicien non trouvé' });
         }
 
-        // VÉRIFIER LA DISPONIBILITÉ DU TECHNICIEN
+        // Vérifier la disponibilité du technicien
         const estDisponible = await checkTechnicienDisponibilite(technicien_id, rdv[0].date_heure);
         
         if (!estDisponible) {
@@ -221,12 +213,12 @@ const createInterventionFromRdv = async (req, res) => {
             });
         }
 
-        // Créer l'intervention
+        // Créer l'intervention avec le type de prestation
         const [result] = await db.query(
             `INSERT INTO interventions 
-            (vehicule_id, technicien_id, rdv_id, statut, description, date_debut) 
-            VALUES (?, ?, ?, "prévue", ?, ?)`,
-            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande, rdv[0].date_heure]
+            (vehicule_id, technicien_id, rdv_id, statut, description, type_prestation, date_debut) 
+            VALUES (?, ?, ?, "prévue", ?, ?, ?)`,
+            [rdv[0].vehicule_id, technicien_id, rdv_id, rdv[0].service_demande, rdv[0].service_demande, rdv[0].date_heure]
         );
 
         res.status(201).json({ 
@@ -282,12 +274,12 @@ const getAllInterventions = async (req, res) => {
 // Modifier une intervention (admin)
 const updateIntervention = async (req, res) => {
     const interventionId = req.params.id;
-    const { technicien_id, description, statut } = req.body;
+    const { technicien_id, description, type_prestation, statut } = req.body;
 
     try {
         await db.query(
-            'UPDATE interventions SET technicien_id = ?, description = ?, statut = ? WHERE id = ?',
-            [technicien_id, description, statut, interventionId]
+            'UPDATE interventions SET technicien_id = ?, description = ?, type_prestation = ?, statut = ? WHERE id = ?',
+            [technicien_id, description, type_prestation, statut, interventionId]
         );
         res.json({ message: 'Intervention modifiée avec succès' });
     } catch (err) {

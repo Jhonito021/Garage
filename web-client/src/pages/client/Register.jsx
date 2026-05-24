@@ -68,28 +68,28 @@ function Register() {
                             <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
                             Nom *
                         </label>
-                        <input type="text" name="nom" placeholder="Dupont" onChange={handleChange} required />
+                        <input type="text" name="nom" placeholder="Rakoto" onChange={handleChange} required />
                     </div>
                     <div className="form-group">
                         <label>
                             <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
                             Prénom *
                         </label>
-                        <input type="text" name="prenom" placeholder="Jean" onChange={handleChange} required />
+                        <input type="text" name="prenom" placeholder="Bema" onChange={handleChange} required />
                     </div>
                     <div className="form-group">
                         <label>
                             <FontAwesomeIcon icon={faPhone} style={{ marginRight: '8px' }} />
                             Téléphone
                         </label>
-                        <input type="tel" name="telephone" placeholder="0612345678" onChange={handleChange} />
+                        <input type="tel" name="telephone" placeholder="038 00 000 00" onChange={handleChange} />
                     </div>
                     <div className="form-group">
                         <label>
                             <FontAwesomeIcon icon={faMapMarkerAlt} style={{ marginRight: '8px' }} />
                             Adresse
                         </label>
-                        <textarea name="adresse" placeholder="10 Rue de Paris, 75001 Paris" rows="2" onChange={handleChange} />
+                        <textarea name="adresse" placeholder="" rows="2" onChange={handleChange} />
                     </div>
                     <button type="submit" disabled={loading} className="w-100">
                         {loading ? 'Inscription...' : 'S\'inscrire'}

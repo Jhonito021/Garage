@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 import TechnicienRoute from './components/TechnicienRoute';
+import Profil from './pages/client/Profil';
 
 // Pages client
 import Home from './pages/client/Home';
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/historique" element={<PrivateRoute><Historique /></PrivateRoute>} />
                 <Route path="/factures" element={<PrivateRoute><Factures /></PrivateRoute>} />
                 <Route path="/suivi" element={<PrivateRoute><SuiviInterventions /></PrivateRoute>} />
+                <Route path="/profil" element={<PrivateRoute><Profil /></PrivateRoute>} />
                 
                 {/* Routes admin */}
                 <Route path="/admin/login" element={<AdminLogin />} />

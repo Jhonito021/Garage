@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../services/api';
-import Header from '../../components/Header';
 
 export default function RdvScreen() {
   const [vehicules, setVehicules] = useState([]);
@@ -128,15 +127,13 @@ export default function RdvScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Header title="Mes rendez-vous" />
-        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
+        <ActivityIndicator size="large" color="#e94560" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Header title="Mes rendez-vous" />
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Ionicons name="add" size={16} color="#fff" />
         <Text style={styles.addButtonText}>Prendre rendez-vous</Text>
@@ -266,10 +263,9 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#121212',
-  },
-  loader: {
-    marginTop: 50,
   },
   addButton: {
     flexDirection: 'row',
