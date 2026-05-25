@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
 
 export default function FacturesScreen() {
@@ -17,10 +18,21 @@ export default function FacturesScreen() {
 
   const fetchFactures = async () => {
     try {
-      const res = await api.get('/factures');
-      setFactures(res.data);
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) return;
+      
+      const user = JSON.parse(userData);
+      
+      const { data, status } = await api.get(`/factures?client_id=${user.id}`);
+      
+      if (status === 200 && Array.isArray(data)) {
+        setFactures(data);
+      } else {
+        setFactures([]);
+      }
     } catch (err) {
       console.error('Erreur chargement factures:', err);
+      setFactures([]);
     } finally {
       setLoading(false);
     }

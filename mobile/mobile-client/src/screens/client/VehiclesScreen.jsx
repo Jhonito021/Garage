@@ -14,7 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
-import Header from '../../components/Header';
+// import Header from '../../components/Header';
 
 export default function VehiclesScreen() {
   const [vehicules, setVehicules] = useState([]);
@@ -33,21 +33,36 @@ export default function VehiclesScreen() {
 
   const fetchVehicules = async () => {
     try {
-      console.log('Récupération des véhicules...');
-      const { data, status } = await api.get('/vehicules');
+      setLoading(true);
       
-      if (status === 401) {
-        setError('Session expirée. Veuillez vous reconnecter.');
-        await AsyncStorage.removeItem('user');
+      // Récupérer l'utilisateur stocké
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) {
+        setError('Veuillez vous connecter');
+        setLoading(false);
         return;
       }
       
-      console.log('Véhicules reçus:', data);
-      setVehicules(Array.isArray(data) ? data : []);
-      setError('');
+      const user = JSON.parse(userData);
+      console.log('Client ID:', user.id);
+      
+      // Envoyer client_id en paramètre
+      const { data, status } = await api.get(`/vehicules?client_id=${user.id}`);
+      
+      console.log('Status:', status);
+      console.log('Données:', data);
+      
+      if (status === 200 && Array.isArray(data)) {
+        setVehicules(data);
+        setError('');
+      } else {
+        setVehicules([]);
+        setError('Aucun véhicule trouvé');
+      }
     } catch (err) {
       console.error('Erreur fetchVehicules:', err);
-      setError('Erreur lors du chargement des véhicules');
+      setError('Erreur de connexion');
+      setVehicules([]);
     } finally {
       setLoading(false);
     }
@@ -68,11 +83,19 @@ export default function VehiclesScreen() {
     }
 
     try {
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) {
+        Alert.alert('Erreur', 'Utilisateur non connecté');
+        return;
+      }
+      
+      const user = JSON.parse(userData);
+      
       if (editingId) {
-        await api.put(`/vehicules/${editingId}`, formData);
+        await api.put(`/vehicules/${editingId}`, { ...formData, client_id: user.id });
         Alert.alert('Succès', 'Véhicule modifié');
       } else {
-        await api.post('/vehicules', formData);
+        await api.post('/vehicules', { ...formData, client_id: user.id });
         Alert.alert('Succès', 'Véhicule ajouté');
       }
       setModalVisible(false);
@@ -87,7 +110,8 @@ export default function VehiclesScreen() {
       });
       fetchVehicules();
     } catch (err) {
-      Alert.alert('Erreur', 'Erreur lors de l\'enregistrement');
+      console.error('Erreur:', err);
+      Alert.alert('Erreur', err.response?.data?.error || 'Erreur');
     }
   };
 
@@ -98,8 +122,10 @@ export default function VehiclesScreen() {
         text: 'Supprimer',
         style: 'destructive',
         onPress: async () => {
+          const userData = await AsyncStorage.getItem('user');
+          const user = JSON.parse(userData);
           try {
-            await api.delete(`/vehicules/${id}`);
+            await api.delete(`/vehicules/${id}`, { data: { client_id: user.id } });
             fetchVehicules();
           } catch (err) {
             Alert.alert('Erreur', 'Erreur lors de la suppression');
@@ -157,7 +183,7 @@ export default function VehiclesScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Header title="Mes véhicules" />
+        {/* <Header title="Mes véhicules" /> */}
         <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
       </View>
     );
@@ -166,7 +192,7 @@ export default function VehiclesScreen() {
   if (error) {
     return (
       <View style={styles.loadingContainer}>
-        <Header title="Mes véhicules" />
+        {/* <Header title="Mes véhicules" /> */}
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchVehicules}>
           <Text style={styles.retryButtonText}>Réessayer</Text>
@@ -177,7 +203,7 @@ export default function VehiclesScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Mes véhicules" />
+      {/* <Header title="Mes véhicules" /> */}
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Ionicons name="add" size={16} color="#fff" />
         <Text style={styles.addButtonText}>Ajouter un véhicule</Text>

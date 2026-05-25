@@ -27,21 +27,22 @@ export default function LoginScreen({ navigation }) {
 
     setLoading(true);
     try {
-      console.log('Tentative de connexion à:', api.baseURL || 'API');
-      console.log('Email:', email);
-      
-      const { data, status } = await api.post('/auth/login', {
+      const response = await api.post('/auth/login', {
         email,
         mot_de_passe: password,
       });
 
-      console.log('Status:', status);
-      console.log('Réponse:', data);
+      console.log('Réponse:', response.data);
 
-      if (data.user) {
-        await AsyncStorage.setItem('user', JSON.stringify(data.user));
-        console.log('Utilisateur stocké');
-        navigation.replace('Main');
+      if (response.data.user) {
+        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        Alert.alert('Succès', 'Connexion réussie');
+        
+        // Remplacer par 'App' (le nom de l'écran dans AppNavigator)
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'App' }],
+        });
       } else {
         Alert.alert('Erreur', 'Email ou mot de passe incorrect');
       }

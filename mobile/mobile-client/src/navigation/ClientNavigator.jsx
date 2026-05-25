@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ClientDashboardScreen from '../screens/client/ClientDashboardScreen';
 import VehiclesScreen from '../screens/client/VehiclesScreen';
@@ -10,7 +12,33 @@ import FacturesScreen from '../screens/client/FacturesScreen';
 
 const Tab = createBottomTabNavigator();
 
-export default function ClientNavigator() {
+// Composant de déconnexion pour le header
+const LogoutButton = ({ navigation }) => {
+  const handleLogout = async () => {
+    try {
+      await fetch('http://192.168.56.1:3005/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Erreur déconnexion:', error);
+    } finally {
+      await AsyncStorage.removeItem('user');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
+    }
+  };
+
+  return (
+    <TouchableOpacity onPress={handleLogout} style={{ marginRight: 15 }}>
+      <Ionicons name="log-out" size={24} color="#e94560" />
+    </TouchableOpacity>
+  );
+};
+
+export default function ClientNavigator({ navigation }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -48,6 +76,7 @@ export default function ClientNavigator() {
           fontWeight: 'bold',
         },
         headerTintColor: '#e94560',
+        headerRight: () => <LogoutButton navigation={navigation} />,
       })}
     >
       <Tab.Screen 

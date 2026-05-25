@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
+// import Header from '../../components/Header';
 
 export default function ClientDashboardScreen({ navigation }) {
   const [vehicules, setVehicules] = useState([]);
@@ -22,15 +23,23 @@ export default function ClientDashboardScreen({ navigation }) {
 
   const fetchData = async () => {
     try {
-      const vehiculesRes = await api.get('/vehicules');
-      const rdvRes = await api.get('/rdv');
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) return;
+      
+      const user = JSON.parse(userData);
+      setUser(user);
+      
+      const [vehiculesRes, rdvRes] = await Promise.all([
+        api.get(`/vehicules?client_id=${user.id}`),
+        api.get(`/rdv?client_id=${user.id}`)
+      ]);
       
       setVehicules(Array.isArray(vehiculesRes.data) ? vehiculesRes.data : []);
       setRdv(Array.isArray(rdvRes.data) ? rdvRes.data : []);
       setError('');
     } catch (err) {
-      console.error('Erreur:', err);
-      setError('Erreur de chargement');
+      console.error('Erreur fetchData:', err);
+      setError('Erreur de chargement des données');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -38,11 +47,6 @@ export default function ClientDashboardScreen({ navigation }) {
   };
 
   useEffect(() => {
-    const loadUser = async () => {
-      const userData = await AsyncStorage.getItem('user');
-      if (userData) setUser(JSON.parse(userData));
-    };
-    loadUser();
     fetchData();
   }, []);
 
@@ -54,7 +58,8 @@ export default function ClientDashboardScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e94560" />
+        {/* <Header title="Tableau de bord" /> */}
+        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
       </View>
     );
   }
@@ -62,6 +67,7 @@ export default function ClientDashboardScreen({ navigation }) {
   if (error) {
     return (
       <View style={styles.loadingContainer}>
+        {/* <Header title="Tableau de bord" /> */}
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
           <Text style={styles.retryButtonText}>Réessayer</Text>
@@ -72,6 +78,7 @@ export default function ClientDashboardScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* <Header title="Tableau de bord" /> */}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -177,15 +184,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#121212',
   },
+  loader: {
+    marginTop: 20,
+  },
   errorText: {
     color: '#e94560',
     fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   retryButton: {
     backgroundColor: '#e94560',
     padding: 10,
     borderRadius: 8,
-    marginTop: 20,
   },
   retryButtonText: {
     color: '#fff',

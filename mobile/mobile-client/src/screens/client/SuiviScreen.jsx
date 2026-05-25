@@ -8,6 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
 
 export default function SuiviScreen() {
@@ -17,11 +18,21 @@ export default function SuiviScreen() {
 
   const fetchInterventions = async () => {
     try {
-      const res = await api.get('/suivi/interventions');
-      console.log('Interventions reçues:', res.data);
-      setInterventions(res.data);
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) return;
+      
+      const user = JSON.parse(userData);
+      
+      const { data, status } = await api.get(`/suivi/interventions?client_id=${user.id}`);
+      
+      if (status === 200 && Array.isArray(data)) {
+        setInterventions(data);
+      } else {
+        setInterventions([]);
+      }
     } catch (err) {
       console.error('Erreur:', err);
+      setInterventions([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

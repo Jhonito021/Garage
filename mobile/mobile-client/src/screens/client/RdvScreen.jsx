@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
 
 export default function RdvScreen() {
@@ -26,15 +27,23 @@ export default function RdvScreen() {
     service_demande: '',
   });
   const [creneaux, setCreneaux] = useState([]);
+  const [user, setUser] = useState(null);
 
   const fetchData = async () => {
     try {
-      const [vehiculesRes, rdvsRes] = await Promise.all([
-        api.get('/vehicules'),
-        api.get('/rdv'),
-      ]);
-      setVehicules(vehiculesRes.data);
-      setRdvs(rdvsRes.data);
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) return;
+      
+      const user = JSON.parse(userData);
+      setUser(user);
+      
+      // Récupérer les véhicules avec client_id
+      const vehiculesRes = await api.get(`/vehicules?client_id=${user.id}`);
+      setVehicules(Array.isArray(vehiculesRes.data) ? vehiculesRes.data : []);
+      
+      // Récupérer les rendez-vous avec client_id
+      const rdvsRes = await api.get(`/rdv?client_id=${user.id}`);
+      setRdvs(Array.isArray(rdvsRes.data) ? rdvsRes.data : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -66,6 +75,7 @@ export default function RdvScreen() {
 
     try {
       await api.post('/rdv', {
+        client_id: user.id,
         vehicule_id: formData.vehicule_id,
         date_heure: dateHeure,
         service_demande: formData.service_demande,
@@ -79,14 +89,14 @@ export default function RdvScreen() {
     }
   };
 
-  const handleAnnuler = (id) => {
+  const handleAnnuler = async (id) => {
     Alert.alert('Confirmation', 'Annuler ce rendez-vous ?', [
       { text: 'Non', style: 'cancel' },
       {
         text: 'Oui',
         onPress: async () => {
           try {
-            await api.put(`/rdv/${id}/annuler`);
+            await api.put(`/rdv/${id}/annuler`, { client_id: user.id });
             fetchData();
           } catch (err) {
             Alert.alert('Erreur', err.response?.data?.error || 'Erreur');
