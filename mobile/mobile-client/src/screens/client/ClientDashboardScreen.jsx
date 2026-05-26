@@ -24,7 +24,6 @@ export default function ClientDashboardScreen({ navigation }) {
     try {
       const userData = await AsyncStorage.getItem('user');
       if (!userData) return;
-      
       const user = JSON.parse(userData);
       setUser(user);
       
@@ -35,10 +34,8 @@ export default function ClientDashboardScreen({ navigation }) {
       
       setVehicules(Array.isArray(vehiculesRes.data) ? vehiculesRes.data : []);
       setRdv(Array.isArray(rdvRes.data) ? rdvRes.data : []);
-      setError('');
     } catch (err) {
-      console.error('Erreur fetchData:', err);
-      setError('Erreur de chargement des données');
+      setError('Erreur de chargement');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -62,109 +59,65 @@ export default function ClientDashboardScreen({ navigation }) {
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
-          <Text style={styles.retryButtonText}>Réessayer</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-    
-      <View style={styles.welcomeContainer}>
-        <Ionicons name="speedometer" size={24} color="#e94560" />
-        <Text style={styles.welcomeText}>
-          Bonjour {user?.prenom} {user?.nom}
-        </Text>
-      </View>
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <View style={styles.welcomeContainer}>
+          <Ionicons name="speedometer" size={24} color="#e94560" />
+          <Text style={styles.welcomeText}>Bonjour {user?.prenom} {user?.nom}</Text>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>
-          <Ionicons name="car" size={16} color="#e94560" /> Mes véhicules
-        </Text>
-        {vehicules.length === 0 ? (
-          <Text style={styles.emptyText}>Aucun véhicule enregistré</Text>
-        ) : (
-          vehicules.slice(0, 3).map((v) => (
-            <View key={v.id} style={styles.vehicleItem}>
-              <Text style={styles.vehicleName}>
-                {v.marque} {v.modele} - {v.immatriculation}
-              </Text>
-              <Text style={styles.vehicleKm}>
-                Kilométrage: {v.kilometrage_actuel?.toLocaleString()} km
-              </Text>
-            </View>
-          ))
-        )}
-        <TouchableOpacity
-          style={styles.cardButton}
-          onPress={() => navigation.navigate('Véhicules')}
-        >
-          <Ionicons name={vehicules.length === 0 ? "add" : "eye"} size={16} color="#fff" />
-          <Text style={styles.cardButtonText}>
-            {vehicules.length === 0 ? 'Ajouter un véhicule' : 'Voir tous mes véhicules'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}><Ionicons name="car" size={16} color="#e94560" /> Mes véhicules</Text>
+          {vehicules.length === 0 ? (
+            <Text style={styles.emptyText}>Aucun véhicule</Text>
+          ) : (
+            vehicules.slice(0, 3).map((v) => (
+              <View key={v.id} style={styles.vehicleItem}>
+                <Text style={styles.vehicleName}>{v.marque} {v.modele} - {v.immatriculation}</Text>
+                <Text style={styles.vehicleKm}>{v.kilometrage_actuel?.toLocaleString()} km</Text>
+              </View>
+            ))
+          )}
+          <TouchableOpacity style={styles.cardButton} onPress={() => navigation.navigate('Véhicules')}>
+            <Ionicons name={vehicules.length === 0 ? "add" : "eye"} size={16} color="#fff" />
+            <Text style={styles.cardButtonText}>{vehicules.length === 0 ? 'Ajouter' : 'Voir tous'}</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>
-          <Ionicons name="calendar" size={16} color="#e94560" /> Prochains rendez-vous
-        </Text>
-        {rdv.length === 0 ? (
-          <Text style={styles.emptyText}>Aucun rendez-vous à venir</Text>
-        ) : (
-          rdv.slice(0, 3).map((r) => (
-            <View key={r.id} style={styles.rdvItem}>
-              <Text style={styles.rdvService}>{r.service_demande}</Text>
-              <Text style={styles.rdvDate}>
-                {new Date(r.date_heure).toLocaleString('fr-FR')}
-              </Text>
-              <Text style={styles.rdvVehicle}>
-                {r.marque} {r.modele}
-              </Text>
-            </View>
-          ))
-        )}
-        <TouchableOpacity
-          style={styles.cardButton}
-          onPress={() => navigation.navigate('Rdv')}
-        >
-          <Ionicons name="add" size={16} color="#fff" />
-          <Text style={styles.cardButtonText}>Prendre rendez-vous</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}><Ionicons name="calendar" size={16} color="#e94560" /> Prochains rendez-vous</Text>
+          {rdv.length === 0 ? (
+            <Text style={styles.emptyText}>Aucun rendez-vous</Text>
+          ) : (
+            rdv.slice(0, 3).map((r) => (
+              <View key={r.id} style={styles.rdvItem}>
+                <Text style={styles.rdvService}>{r.service_demande}</Text>
+                <Text style={styles.rdvDate}>{new Date(r.date_heure).toLocaleString('fr-FR')}</Text>
+              </View>
+            ))
+          )}
+          <TouchableOpacity style={styles.cardButton} onPress={() => navigation.navigate('Rendez-vous')}>
+            <Ionicons name="add" size={16} color="#fff" />
+            <Text style={styles.cardButtonText}>Prendre rendez-vous</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>
-          <Ionicons name="notifications" size={16} color="#e94560" /> Rappel vidange
-        </Text>
-        {vehicules.length === 0 ? (
-          <Text style={styles.emptyText}>Ajoutez un véhicule pour voir les rappels</Text>
-        ) : (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}><Ionicons name="notifications" size={16} color="#e94560" /> Rappel vidange</Text>
           <View style={styles.reminderContainer}>
             <Ionicons name="car" size={40} color="#aaaaaa" />
-            <Text style={styles.reminderText}>
-              Consultez vos véhicules pour voir les échéances d'entretien
-            </Text>
-            <TouchableOpacity
-              style={styles.reminderButton}
-              onPress={() => navigation.navigate('Vehicles')}
-            >
+            <Text style={styles.reminderText}>Consultez vos véhicules</Text>
+            <TouchableOpacity style={styles.reminderButton} onPress={() => navigation.navigate('Véhicules')}>
               <Text style={styles.reminderButtonText}>Voir mes véhicules</Text>
             </TouchableOpacity>
           </View>
-        )}
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -178,20 +131,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#121212',
-  },
-  errorText: {
-    color: '#e94560',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: '#e94560',
-    padding: 10,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#fff',
   },
   scrollContent: {
     padding: 15,
@@ -248,11 +187,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  rdvVehicle: {
-    color: '#aaaaaa',
-    fontSize: 12,
-    marginTop: 4,
-  },
   emptyText: {
     color: '#aaaaaa',
     textAlign: 'center',
@@ -263,7 +197,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
-    marginTop: 10,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,

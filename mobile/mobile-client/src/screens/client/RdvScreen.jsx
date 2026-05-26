@@ -18,6 +18,7 @@ import api from '../../services/api';
 export default function RdvScreen() {
   const [vehicules, setVehicules] = useState([]);
   const [rdvs, setRdvs] = useState([]);
+  const [interventions, setInterventions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [formData, setFormData] = useState({
@@ -37,13 +38,15 @@ export default function RdvScreen() {
       const user = JSON.parse(userData);
       setUser(user);
       
-      const [vehiculesRes, rdvsRes] = await Promise.all([
+      const [vehiculesRes, rdvsRes, interventionsRes] = await Promise.all([
         api.get(`/vehicules?client_id=${user.id}`),
-        api.get(`/rdv?client_id=${user.id}`)
+        api.get(`/rdv?client_id=${user.id}`),
+        api.get(`/suivi/interventions?client_id=${user.id}`)
       ]);
       
       setVehicules(Array.isArray(vehiculesRes.data) ? vehiculesRes.data : []);
       setRdvs(Array.isArray(rdvsRes.data) ? rdvsRes.data : []);
+      setInterventions(Array.isArray(interventionsRes.data) ? interventionsRes.data : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -89,6 +92,42 @@ export default function RdvScreen() {
     }
   };
 
+  // Récupérer l'intervention associée au rendez-vous
+  const getInterventionForRdv = (rdvId) => {
+    const found = interventions.find(i => i.rdv_id === rdvId);
+    return found;
+  };
+
+  // Vérifier si le rendez-vous a une intervention en cours ou terminée
+  const isInterventionBlocked = (rdvId) => {
+    const intervention = getInterventionForRdv(rdvId);
+    if (intervention) {
+      if (intervention.statut === 'en_cours' || intervention.statut === 'terminée') {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Obtenir le message d'information
+  const getInfoMessage = (rdv) => {
+    if (rdv.statut === 'annulé') {
+      return { message: "Ce rendez-vous a été annulé", type: 'danger' };
+    }
+    
+    const intervention = getInterventionForRdv(rdv.id);
+    if (intervention) {
+      if (intervention.statut === 'en_cours') {
+        return { message: "L'intervention est déjà en cours", type: 'warning' };
+      }
+      if (intervention.statut === 'terminée') {
+        return { message: "L'intervention est déjà terminée", type: 'success' };
+      }
+    }
+    
+    return null;
+  };
+
   const handleAnnuler = async (id) => {
     Alert.alert('Confirmation', 'Annuler ce rendez-vous ?', [
       { text: 'Non', style: 'cancel' },
@@ -98,6 +137,7 @@ export default function RdvScreen() {
           try {
             await api.put(`/rdv/${id}/annuler`, { client_id: user.id });
             fetchData();
+            Alert.alert('Succès', 'Rendez-vous annulé');
           } catch (err) {
             Alert.alert('Erreur', err.response?.data?.error || 'Erreur');
           }
@@ -106,33 +146,83 @@ export default function RdvScreen() {
     ]);
   };
 
-  const renderRdvCard = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>
-          <Ionicons name="build" size={14} color="#e94560" /> {item.service_demande}
-        </Text>
-        {item.statut === 'confirmé' && (
-          <TouchableOpacity onPress={() => handleAnnuler(item.id)}>
-            <Text style={styles.cancelText}>Annuler</Text>
+  const getStatusBadge = (rdv) => {
+    const intervention = getInterventionForRdv(rdv.id);
+    
+    if (intervention && intervention.statut === 'en_cours') {
+      return <Text style={[styles.badge, styles.badgeWarning]}>Intervention en cours</Text>;
+    }
+    if (intervention && intervention.statut === 'terminée') {
+      return <Text style={[styles.badge, styles.badgeSuccess]}>Intervention terminée</Text>;
+    }
+    if (rdv.statut === 'confirmé') {
+      return <Text style={[styles.badge, styles.badgeInfo]}>Confirmé</Text>;
+    }
+    if (rdv.statut === 'annulé') {
+      return <Text style={[styles.badge, styles.badgeDanger]}>Annulé</Text>;
+    }
+    return <Text style={[styles.badge, styles.badgeInfo]}>{rdv.statut}</Text>;
+  };
+
+  const renderRdvCard = ({ item }) => {
+    const infoMessage = getInfoMessage(item);
+    const blocked = isInterventionBlocked(item.id);
+    const isCancelled = item.statut === 'annulé';
+    
+    // Afficher le bouton seulement si le rendez-vous n'est PAS annulé ET PAS bloqué par une intervention
+    const showCancelButton = !isCancelled && !blocked;
+    
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>
+            <Ionicons name="build" size={14} color="#e94560" /> {item.service_demande}
+          </Text>
+          {getStatusBadge(item)}
+        </View>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardText}>
+            <Ionicons name="calendar" size={12} color="#aaaaaa" /> {new Date(item.date_heure).toLocaleString('fr-FR')}
+          </Text>
+          <Text style={styles.cardText}>
+            <Ionicons name="car" size={12} color="#aaaaaa" /> {item.marque} {item.modele} - {item.immatriculation}
+          </Text>
+          
+          {/* Message d'information */}
+          {infoMessage && (
+            <View style={[
+              styles.infoContainer,
+              infoMessage.type === 'warning' && styles.infoWarning,
+              infoMessage.type === 'success' && styles.infoSuccess,
+              infoMessage.type === 'danger' && styles.infoDanger,
+            ]}>
+              <Ionicons 
+                name={infoMessage.type === 'warning' ? 'alert-circle' : (infoMessage.type === 'success' ? 'checkmark-circle' : 'close-circle')} 
+                size={16} 
+                color={infoMessage.type === 'warning' ? '#ff9800' : (infoMessage.type === 'success' ? '#4caf50' : '#f44336')} 
+              />
+              <Text style={[
+                styles.infoText,
+                infoMessage.type === 'warning' && styles.infoTextWarning,
+                infoMessage.type === 'success' && styles.infoTextSuccess,
+                infoMessage.type === 'danger' && styles.infoTextDanger,
+              ]}>
+                {infoMessage.message}
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        {/* Bouton annuler - uniquement si le rendez-vous n'est pas annulé ET pas bloqué */}
+        {showCancelButton && (
+          <TouchableOpacity style={styles.cancelButton} onPress={() => handleAnnuler(item.id)}>
+            <Ionicons name="close" size={16} color="#fff" />
+            <Text style={styles.cancelButtonText}>Annuler le rendez-vous</Text>
           </TouchableOpacity>
         )}
       </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.cardText}>
-          <Ionicons name="calendar" size={12} color="#aaaaaa" /> {new Date(item.date_heure).toLocaleString('fr-FR')}
-        </Text>
-        <Text style={styles.cardText}>
-          <Ionicons name="car" size={12} color="#aaaaaa" /> {item.marque} {item.modele} - {item.immatriculation}
-        </Text>
-        <Text style={styles.cardText}>
-          Statut: <Text style={item.statut === 'confirmé' ? styles.statusConfirm : styles.statusCancel}>
-            {item.statut}
-          </Text>
-        </Text>
-      </View>
-    </View>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -313,22 +403,80 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  cancelText: {
-    color: '#e94560',
-    fontSize: 12,
-  },
   cardContent: {
-    gap: 5,
+    gap: 8,
   },
   cardText: {
     color: '#f5f5f5',
     fontSize: 14,
   },
-  statusConfirm: {
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  badgeInfo: {
+    backgroundColor: '#2196f3',
+    color: '#fff',
+  },
+  badgeWarning: {
+    backgroundColor: '#ff9800',
+    color: '#fff',
+  },
+  badgeSuccess: {
+    backgroundColor: '#4caf50',
+    color: '#fff',
+  },
+  badgeDanger: {
+    backgroundColor: '#f44336',
+    color: '#fff',
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 5,
+    gap: 8,
+  },
+  infoWarning: {
+    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+  },
+  infoSuccess: {
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  infoDanger: {
+    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+  },
+  infoText: {
+    fontSize: 12,
+    flex: 1,
+  },
+  infoTextWarning: {
+    color: '#ff9800',
+  },
+  infoTextSuccess: {
     color: '#4caf50',
   },
-  statusCancel: {
+  infoTextDanger: {
     color: '#f44336',
+  },
+  cancelButton: {
+    flexDirection: 'row',
+    backgroundColor: '#f44336',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   emptyContainer: {
     alignItems: 'center',

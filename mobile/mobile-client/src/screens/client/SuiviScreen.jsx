@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,8 +14,10 @@ import api from '../../services/api';
 
 export default function SuiviScreen() {
   const [interventions, setInterventions] = useState([]);
+  const [filteredInterventions, setFilteredInterventions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState('all'); // all, en_cours, en_attente, terminee
 
   const fetchInterventions = async () => {
     try {
@@ -26,12 +29,15 @@ export default function SuiviScreen() {
       
       if (status === 200 && Array.isArray(data)) {
         setInterventions(data);
+        applyFilter(data, filter);
       } else {
         setInterventions([]);
+        setFilteredInterventions([]);
       }
     } catch (err) {
       console.error('Erreur:', err);
       setInterventions([]);
+      setFilteredInterventions([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -42,9 +48,33 @@ export default function SuiviScreen() {
     fetchInterventions();
   }, []);
 
+  useEffect(() => {
+    applyFilter(interventions, filter);
+  }, [filter, interventions]);
+
+  const applyFilter = (data, selectedFilter) => {
+    if (selectedFilter === 'all') {
+      setFilteredInterventions(data);
+    } else if (selectedFilter === 'en_cours') {
+      setFilteredInterventions(data.filter(i => i.statut === 'en_cours'));
+    } else if (selectedFilter === 'en_attente') {
+      setFilteredInterventions(data.filter(i => i.statut === 'prévue' || !i.statut));
+    } else if (selectedFilter === 'terminee') {
+      setFilteredInterventions(data.filter(i => i.statut === 'terminée'));
+    }
+  };
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchInterventions();
+  };
+
+  const getStats = () => {
+    const total = interventions.length;
+    const enCours = interventions.filter(i => i.statut === 'en_cours').length;
+    const terminees = interventions.filter(i => i.statut === 'terminée').length;
+    const enAttente = interventions.filter(i => i.statut === 'prévue' || !i.statut).length;
+    return { total, enCours, terminees, enAttente };
   };
 
   const getStatusIcon = (statut) => {
@@ -86,6 +116,8 @@ export default function SuiviScreen() {
     }
   };
 
+  const stats = getStats();
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -96,17 +128,70 @@ export default function SuiviScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Statistiques */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{stats.total}</Text>
+          <Text style={styles.statLabel}>Total</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={[styles.statValue, { color: '#ff9800' }]}>{stats.enCours}</Text>
+          <Text style={styles.statLabel}>En cours</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={[styles.statValue, { color: '#2196f3' }]}>{stats.enAttente}</Text>
+          <Text style={styles.statLabel}>En attente</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={[styles.statValue, { color: '#4caf50' }]}>{stats.terminees}</Text>
+          <Text style={styles.statLabel}>Terminées</Text>
+        </View>
+      </View>
+
+      {/* Filtres */}
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'all' && styles.filterActive]}
+          onPress={() => setFilter('all')}
+        >
+          <Ionicons name="apps" size={14} color={filter === 'all' ? '#fff' : '#e94560'} />
+          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>Toutes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'en_cours' && styles.filterActive]}
+          onPress={() => setFilter('en_cours')}
+        >
+          <Ionicons name="play-circle" size={14} color={filter === 'en_cours' ? '#fff' : '#e94560'} />
+          <Text style={[styles.filterText, filter === 'en_cours' && styles.filterTextActive]}>En cours</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'en_attente' && styles.filterActive]}
+          onPress={() => setFilter('en_attente')}
+        >
+          <Ionicons name="hourglass" size={14} color={filter === 'en_attente' ? '#fff' : '#e94560'} />
+          <Text style={[styles.filterText, filter === 'en_attente' && styles.filterTextActive]}>En attente</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'terminee' && styles.filterActive]}
+          onPress={() => setFilter('terminee')}
+        >
+          <Ionicons name="checkmark-circle" size={14} color={filter === 'terminee' ? '#fff' : '#e94560'} />
+          <Text style={[styles.filterText, filter === 'terminee' && styles.filterTextActive]}>Terminées</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Liste des interventions filtrées */}
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {interventions.length === 0 ? (
+        {filteredInterventions.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="map" size={50} color="#aaaaaa" />
-            <Text style={styles.emptyText}>Aucune intervention en cours</Text>
+            <Text style={styles.emptyText}>Aucune intervention trouvée</Text>
           </View>
         ) : (
-          interventions.map((i) => (
+          filteredInterventions.map((i) => (
             <View key={i.id} style={[styles.card, { borderLeftColor: getStatusColor(i.statut), borderLeftWidth: 4 }]}>
               <View style={styles.cardHeader}>
                 {getStatusIcon(i.statut)}
@@ -162,6 +247,56 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 15,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    marginTop: 10,
+    paddingHorizontal: 15,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#1e1e1e',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#e94560',
+  },
+  statLabel: {
+    fontSize: 11,
+    color: '#aaaaaa',
+    marginTop: 4,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    paddingHorizontal: 15,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1e1e1e',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    gap: 6,
+  },
+  filterActive: {
+    backgroundColor: '#e94560',
+  },
+  filterText: {
+    fontSize: 12,
+    color: '#e94560',
+  },
+  filterTextActive: {
+    color: '#fff',
   },
   card: {
     backgroundColor: '#1e1e1e',

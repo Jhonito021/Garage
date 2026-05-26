@@ -41,7 +41,7 @@ export default function LoginScreen({ navigation }) {
         // Remplacer par 'App' (le nom de l'écran dans AppNavigator)
         navigation.reset({
           index: 0,
-          routes: [{ name: 'App' }],
+          routes: [{ name: 'Client' }],
         });
       } else {
         Alert.alert('Erreur', 'Email ou mot de passe incorrect');

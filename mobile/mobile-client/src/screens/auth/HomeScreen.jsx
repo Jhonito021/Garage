@@ -8,7 +8,7 @@ export default function HomeScreen({ navigation }) {
     const checkLogin = async () => {
       const user = await AsyncStorage.getItem('user');
       if (user) {
-        navigation.replace('App');
+        navigation.replace('Client');
       }
     };
     checkLogin();
