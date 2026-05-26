@@ -14,7 +14,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
-// import Header from '../../components/Header';
 
 export default function VehiclesScreen() {
   const [vehicules, setVehicules] = useState([]);
@@ -33,36 +32,24 @@ export default function VehiclesScreen() {
 
   const fetchVehicules = async () => {
     try {
-      setLoading(true);
-      
-      // Récupérer l'utilisateur stocké
       const userData = await AsyncStorage.getItem('user');
-      if (!userData) {
-        setError('Veuillez vous connecter');
-        setLoading(false);
-        return;
-      }
+      if (!userData) return;
       
       const user = JSON.parse(userData);
-      console.log('Client ID:', user.id);
-      
-      // Envoyer client_id en paramètre
       const { data, status } = await api.get(`/vehicules?client_id=${user.id}`);
-      
-      console.log('Status:', status);
-      console.log('Données:', data);
       
       if (status === 200 && Array.isArray(data)) {
         setVehicules(data);
         setError('');
+      } else if (status === 401) {
+        setError('Session expirée. Veuillez vous reconnecter.');
+        await AsyncStorage.removeItem('user');
       } else {
         setVehicules([]);
-        setError('Aucun véhicule trouvé');
       }
     } catch (err) {
       console.error('Erreur fetchVehicules:', err);
       setError('Erreur de connexion');
-      setVehicules([]);
     } finally {
       setLoading(false);
     }
@@ -84,10 +71,7 @@ export default function VehiclesScreen() {
 
     try {
       const userData = await AsyncStorage.getItem('user');
-      if (!userData) {
-        Alert.alert('Erreur', 'Utilisateur non connecté');
-        return;
-      }
+      if (!userData) return;
       
       const user = JSON.parse(userData);
       
@@ -110,7 +94,6 @@ export default function VehiclesScreen() {
       });
       fetchVehicules();
     } catch (err) {
-      console.error('Erreur:', err);
       Alert.alert('Erreur', err.response?.data?.error || 'Erreur');
     }
   };
@@ -183,8 +166,7 @@ export default function VehiclesScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        {/* <Header title="Mes véhicules" /> */}
-        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
+        <ActivityIndicator size="large" color="#e94560" />
       </View>
     );
   }
@@ -192,7 +174,6 @@ export default function VehiclesScreen() {
   if (error) {
     return (
       <View style={styles.loadingContainer}>
-        {/* <Header title="Mes véhicules" /> */}
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchVehicules}>
           <Text style={styles.retryButtonText}>Réessayer</Text>
@@ -203,7 +184,6 @@ export default function VehiclesScreen() {
 
   return (
     <View style={styles.container}>
-      {/* <Header title="Mes véhicules" /> */}
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Ionicons name="add" size={16} color="#fff" />
         <Text style={styles.addButtonText}>Ajouter un véhicule</Text>
@@ -302,9 +282,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#121212',
-  },
-  loader: {
-    marginTop: 20,
   },
   errorText: {
     color: '#e94560',

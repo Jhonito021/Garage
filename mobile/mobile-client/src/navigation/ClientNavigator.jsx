@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ClientDashboardScreen from '../screens/client/ClientDashboardScreen';
@@ -12,23 +12,13 @@ import FacturesScreen from '../screens/client/FacturesScreen';
 
 const Tab = createBottomTabNavigator();
 
-// Composant de déconnexion pour le header
 const LogoutButton = ({ navigation }) => {
   const handleLogout = async () => {
-    try {
-      await fetch('http://192.168.56.1:3005/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-    } catch (error) {
-      console.error('Erreur déconnexion:', error);
-    } finally {
-      await AsyncStorage.removeItem('user');
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      });
-    }
+    await AsyncStorage.removeItem('user');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
   };
 
   return (

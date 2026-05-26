@@ -16,7 +16,6 @@ export default function AppNavigator() {
   useEffect(() => {
     const checkUser = async () => {
       const userData = await AsyncStorage.getItem('user');
-      console.log('User data:', userData);
       setIsLoggedIn(!!userData);
       setLoading(false);
     };
@@ -27,15 +26,18 @@ export default function AppNavigator() {
     return null;
   }
 
-  console.log('IsLoggedIn:', isLoggedIn);
-
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="App" component={ClientNavigator} />
+        {!isLoggedIn ? (
+          <>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
+        ) : (
+          <Stack.Screen name="Client" component={ClientNavigator} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

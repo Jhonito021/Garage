@@ -11,7 +11,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
-// import Header from '../../components/Header';
 
 export default function ClientDashboardScreen({ navigation }) {
   const [vehicules, setVehicules] = useState([]);
@@ -58,8 +57,7 @@ export default function ClientDashboardScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        {/* <Header title="Tableau de bord" /> */}
-        <ActivityIndicator size="large" color="#e94560" style={styles.loader} />
+        <ActivityIndicator size="large" color="#e94560" />
       </View>
     );
   }
@@ -67,7 +65,6 @@ export default function ClientDashboardScreen({ navigation }) {
   if (error) {
     return (
       <View style={styles.loadingContainer}>
-        {/* <Header title="Tableau de bord" /> */}
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
           <Text style={styles.retryButtonText}>Réessayer</Text>
@@ -77,99 +74,97 @@ export default function ClientDashboardScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      {/* <Header title="Tableau de bord" /> */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        <View style={styles.welcomeContainer}>
-          <Ionicons name="speedometer" size={24} color="#e94560" />
-          <Text style={styles.welcomeText}>
-            Bonjour {user?.prenom} {user?.nom}
-          </Text>
-        </View>
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+    
+      <View style={styles.welcomeContainer}>
+        <Ionicons name="speedometer" size={24} color="#e94560" />
+        <Text style={styles.welcomeText}>
+          Bonjour {user?.prenom} {user?.nom}
+        </Text>
+      </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            <Ionicons name="car" size={16} color="#e94560" /> Mes véhicules
-          </Text>
-          {vehicules.length === 0 ? (
-            <Text style={styles.emptyText}>Aucun véhicule enregistré</Text>
-          ) : (
-            vehicules.slice(0, 3).map((v) => (
-              <View key={v.id} style={styles.vehicleItem}>
-                <Text style={styles.vehicleName}>
-                  {v.marque} {v.modele} - {v.immatriculation}
-                </Text>
-                <Text style={styles.vehicleKm}>
-                  Kilométrage: {v.kilometrage_actuel?.toLocaleString()} km
-                </Text>
-              </View>
-            ))
-          )}
-          <TouchableOpacity
-            style={styles.cardButton}
-            onPress={() => navigation.navigate('Véhicules')}
-          >
-            <Ionicons name={vehicules.length === 0 ? "add" : "eye"} size={16} color="#fff" />
-            <Text style={styles.cardButtonText}>
-              {vehicules.length === 0 ? 'Ajouter un véhicule' : 'Voir tous mes véhicules'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            <Ionicons name="calendar" size={16} color="#e94560" /> Prochains rendez-vous
-          </Text>
-          {rdv.length === 0 ? (
-            <Text style={styles.emptyText}>Aucun rendez-vous à venir</Text>
-          ) : (
-            rdv.slice(0, 3).map((r) => (
-              <View key={r.id} style={styles.rdvItem}>
-                <Text style={styles.rdvService}>{r.service_demande}</Text>
-                <Text style={styles.rdvDate}>
-                  {new Date(r.date_heure).toLocaleString('fr-FR')}
-                </Text>
-                <Text style={styles.rdvVehicle}>
-                  {r.marque} {r.modele}
-                </Text>
-              </View>
-            ))
-          )}
-          <TouchableOpacity
-            style={styles.cardButton}
-            onPress={() => navigation.navigate('Rendez-vous')}
-          >
-            <Ionicons name="add" size={16} color="#fff" />
-            <Text style={styles.cardButtonText}>Prendre rendez-vous</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            <Ionicons name="notifications" size={16} color="#e94560" /> Rappel vidange
-          </Text>
-          {vehicules.length === 0 ? (
-            <Text style={styles.emptyText}>Ajoutez un véhicule pour voir les rappels</Text>
-          ) : (
-            <View style={styles.reminderContainer}>
-              <Ionicons name="car" size={40} color="#aaaaaa" />
-              <Text style={styles.reminderText}>
-                Consultez vos véhicules pour voir les échéances d'entretien
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>
+          <Ionicons name="car" size={16} color="#e94560" /> Mes véhicules
+        </Text>
+        {vehicules.length === 0 ? (
+          <Text style={styles.emptyText}>Aucun véhicule enregistré</Text>
+        ) : (
+          vehicules.slice(0, 3).map((v) => (
+            <View key={v.id} style={styles.vehicleItem}>
+              <Text style={styles.vehicleName}>
+                {v.marque} {v.modele} - {v.immatriculation}
               </Text>
-              <TouchableOpacity
-                style={styles.reminderButton}
-                onPress={() => navigation.navigate('Véhicules')}
-              >
-                <Text style={styles.reminderButtonText}>Voir mes véhicules</Text>
-              </TouchableOpacity>
+              <Text style={styles.vehicleKm}>
+                Kilométrage: {v.kilometrage_actuel?.toLocaleString()} km
+              </Text>
             </View>
-          )}
-        </View>
-      </ScrollView>
-    </View>
+          ))
+        )}
+        <TouchableOpacity
+          style={styles.cardButton}
+          onPress={() => navigation.navigate('Véhicules')}
+        >
+          <Ionicons name={vehicules.length === 0 ? "add" : "eye"} size={16} color="#fff" />
+          <Text style={styles.cardButtonText}>
+            {vehicules.length === 0 ? 'Ajouter un véhicule' : 'Voir tous mes véhicules'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>
+          <Ionicons name="calendar" size={16} color="#e94560" /> Prochains rendez-vous
+        </Text>
+        {rdv.length === 0 ? (
+          <Text style={styles.emptyText}>Aucun rendez-vous à venir</Text>
+        ) : (
+          rdv.slice(0, 3).map((r) => (
+            <View key={r.id} style={styles.rdvItem}>
+              <Text style={styles.rdvService}>{r.service_demande}</Text>
+              <Text style={styles.rdvDate}>
+                {new Date(r.date_heure).toLocaleString('fr-FR')}
+              </Text>
+              <Text style={styles.rdvVehicle}>
+                {r.marque} {r.modele}
+              </Text>
+            </View>
+          ))
+        )}
+        <TouchableOpacity
+          style={styles.cardButton}
+          onPress={() => navigation.navigate('Rdv')}
+        >
+          <Ionicons name="add" size={16} color="#fff" />
+          <Text style={styles.cardButtonText}>Prendre rendez-vous</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>
+          <Ionicons name="notifications" size={16} color="#e94560" /> Rappel vidange
+        </Text>
+        {vehicules.length === 0 ? (
+          <Text style={styles.emptyText}>Ajoutez un véhicule pour voir les rappels</Text>
+        ) : (
+          <View style={styles.reminderContainer}>
+            <Ionicons name="car" size={40} color="#aaaaaa" />
+            <Text style={styles.reminderText}>
+              Consultez vos véhicules pour voir les échéances d'entretien
+            </Text>
+            <TouchableOpacity
+              style={styles.reminderButton}
+              onPress={() => navigation.navigate('Vehicles')}
+            >
+              <Text style={styles.reminderButtonText}>Voir mes véhicules</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
@@ -183,9 +178,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#121212',
-  },
-  loader: {
-    marginTop: 20,
   },
   errorText: {
     color: '#e94560',

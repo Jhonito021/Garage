@@ -22,7 +22,6 @@ export default function FacturesScreen() {
       if (!userData) return;
       
       const user = JSON.parse(userData);
-      
       const { data, status } = await api.get(`/factures?client_id=${user.id}`);
       
       if (status === 200 && Array.isArray(data)) {

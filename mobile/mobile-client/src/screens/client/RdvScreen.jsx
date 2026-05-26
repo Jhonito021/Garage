@@ -37,12 +37,12 @@ export default function RdvScreen() {
       const user = JSON.parse(userData);
       setUser(user);
       
-      // Récupérer les véhicules avec client_id
-      const vehiculesRes = await api.get(`/vehicules?client_id=${user.id}`);
-      setVehicules(Array.isArray(vehiculesRes.data) ? vehiculesRes.data : []);
+      const [vehiculesRes, rdvsRes] = await Promise.all([
+        api.get(`/vehicules?client_id=${user.id}`),
+        api.get(`/rdv?client_id=${user.id}`)
+      ]);
       
-      // Récupérer les rendez-vous avec client_id
-      const rdvsRes = await api.get(`/rdv?client_id=${user.id}`);
+      setVehicules(Array.isArray(vehiculesRes.data) ? vehiculesRes.data : []);
       setRdvs(Array.isArray(rdvsRes.data) ? rdvsRes.data : []);
     } catch (err) {
       console.error(err);
