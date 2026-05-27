@@ -41,6 +41,13 @@ import TechnicienLogin from './pages/technicien/TechnicienLogin';
 import TechnicienDashboard from './pages/technicien/TechnicienDashboard';
 import TechnicienInterventions from './pages/technicien/TechnicienInterventions';
 
+// Pages depanneur
+import DepanneurLogin from './pages/depanneur/DepanneurLogin';
+import DepanneurDashboard from './pages/depanneur/DepanneurDashboard';
+import DepanneurMissions from './pages/depanneur/DepanneurMissions';
+import DepanneurSuivi from './pages/depanneur/DepanneurSuivi';
+import DepanneurRoute from './components/DepanneurRoute';
+
 import Acceuil from './pages/Home';
 
 function App() {
@@ -81,6 +88,14 @@ function App() {
                     <Route path="/technicien/login" element={<TechnicienLogin />} />
                     <Route path="/technicien" element={<TechnicienRoute><TechnicienDashboard /></TechnicienRoute>} />
                     <Route path="/technicien/interventions" element={<TechnicienRoute><TechnicienInterventions /></TechnicienRoute>} />
+                    
+                    {/* Routes depanneur */}
+                    <Route path="/depanneur/login" element={<DepanneurLogin />} />
+                    <Route path="/depanneur" element={<DepanneurRoute><DepanneurDashboard /></DepanneurRoute>} />
+                    <Route path="/depanneur/missions" element={<DepanneurRoute><DepanneurMissions /></DepanneurRoute>} />
+                    <Route path="/depanneur/suivi" element={<DepanneurRoute><DepanneurSuivi /></DepanneurRoute>} />
+                    {/* <Route path="/depanneur/historique" element={<DepanneurRoute><DepanneurHistorique /></DepanneurRoute>} /> */}
+                    {/* <Route path="/depanneur/profil" element={<DepanneurRoute><DepanneurProfil /></DepanneurRoute>} /> */}
                 </Routes>
             </Router>
         </ThemeProvider>

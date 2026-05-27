@@ -65,3 +65,61 @@ export const refuserDemande = async (demandeId) => {
         throw error;
     }
 };
+
+// AJOUTER CES FONCTIONS À frontend/src/services/depannageApi.js
+
+/**
+ * Technicien - Récupérer les demandes disponibles
+ */
+export const getTechnicienDemandes = async () => {
+    try {
+        const response = await api.get('/depannage/technicien/demandes');
+        return response.data;
+    } catch (error) {
+        console.error('Erreur getTechnicienDemandes:', error);
+        throw error;
+    }
+};
+
+/**
+ * Technicien - Accepter une mission
+ */
+export const accepterMission = async (demandeId) => {
+    try {
+        const response = await api.put(`/depannage/technicien/mission/${demandeId}/accepter`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur accepterMission:', error);
+        throw error;
+    }
+};
+
+/**
+ * Technicien - Terminer une mission
+ */
+export const terminerMission = async (demandeId) => {
+    try {
+        const response = await api.put(`/depannage/technicien/mission/${demandeId}/terminer`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur terminerMission:', error);
+        throw error;
+    }
+};
+
+/**
+ * Technicien - Mettre à jour la position GPS
+ */
+export const mettreAJourPosition = async (demandeId, lat, lng) => {
+    try {
+        const response = await api.post('/depannage/technicien/position', {
+            demande_id: demandeId,
+            lat: lat,
+            lng: lng
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur mettreAJourPosition:', error);
+        throw error;
+    }
+};

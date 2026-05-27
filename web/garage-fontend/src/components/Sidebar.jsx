@@ -62,10 +62,6 @@ function Sidebar() {
                         <FontAwesomeIcon icon={faWrench} />
                         <span>Mes interventions</span>
                     </Link>
-                    {/* <Link to="/technicien/depannage" className={isActive('/technicien/depannage')}>
-                        <FontAwesomeIcon icon={faTruck} />
-                        <span>Dépannage ⚡</span>
-                    </Link> */}
                 </nav>
                 
                 <div className="admin-sidebar-footer">

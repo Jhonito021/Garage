@@ -1,3 +1,4 @@
+// frontend/src/pages/client/Home.jsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,7 +15,14 @@ import {
   faToolbox,
   faPhone,
   faEnvelope,
-  faFileInvoice
+  faFileInvoice,
+  faTruck,           // NOUVEAU - Icône dépanneur
+  faShieldAlt,       // NOUVEAU - Icône sécurité
+  faHeadset,        // NOUVEAU - Icône support
+  faMapMarkerAl,
+  faRoute,
+  faCheckCircle,
+  faMapMarkerAlt
 } from '@fortawesome/free-solid-svg-icons';
 
 // Importer les images locales
@@ -53,25 +61,29 @@ function Home() {
       icon: faCalendarCheck,
       title: "Rendez-vous en ligne",
       description: "Prenez rendez-vous 24h/24, 7j/7 en quelques clics",
-      color: "#e94560"
+      color: "#e94560",
+      link: "/rdv"
     },
     {
       icon: faCar,
       title: "Gestion des véhicules",
       description: "Ajoutez et suivez tous vos véhicules",
-      color: "#2196f3"
+      color: "#2196f3",
+      link: "/vehicles"
     },
     {
       icon: faBell,
       title: "Rappels automatiques",
       description: "Recevez des notifications pour l'entretien",
-      color: "#ff9800"
+      color: "#ff9800",
+      link: "/dashboard"
     },
     {
       icon: faCreditCard,
       title: "Paiement en ligne",
       description: "Payez vos factures en toute sécurité",
-      color: "#4caf50"
+      color: "#4caf50",
+      link: "/factures"
     }
   ];
 
@@ -198,24 +210,32 @@ function Home() {
         </div>
       </div>
 
-      {/* Fonctionnalités */}
-      {/* <div className="container" style={{ padding: '80px 20px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <FontAwesomeIcon icon={faWrench} style={{ marginRight: '10px', color: 'var(--secondary-color)' }} />
-          Nos services
-        </h2>
-        <div className="grid-4">
-          {features.map((feature, index) => (
-            <div key={index} className="card text-center">
-              <div style={{ fontSize: '2.5rem', color: feature.color }}>
-                <FontAwesomeIcon icon={feature.icon} />
-              </div>
-              <h3>{feature.title}</h3>
-              <p className="text-light">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </div> */}
+      {/* === NOUVEAU : BANNIÈRE ESPACE DÉPANNEUR === */}
+      <div style={{ 
+        backgroundColor: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+        padding: '60px 20px',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '-50px',
+          right: '-50px',
+          width: '200px',
+          height: '200px',
+          backgroundColor: 'rgba(76, 175, 80, 0.05)',
+          borderRadius: '50%'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '-50px',
+          left: '-50px',
+          width: '150px',
+          height: '150px',
+          backgroundColor: 'rgba(76, 175, 80, 0.03)',
+          borderRadius: '50%'
+        }}></div>
+      </div>
 
       {/* Accès rapides - Espaces professionnels */}
       <div style={{ backgroundColor: 'var(--primary-color)', padding: '80px 20px' }}>
@@ -224,7 +244,8 @@ function Home() {
             <FontAwesomeIcon icon={faUserCog} style={{ marginRight: '10px', color: 'var(--secondary-color)' }} />
             Espaces professionnels
           </h2>
-          <div className="grid-2" style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div className="grid-3" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            {/* Espace Technicien */}
             <Link to="/technicien/login" style={{ textDecoration: 'none' }}>
               <div className="card text-center" style={{ height: '100%', cursor: 'pointer', transition: 'transform 0.3s ease' }}>
                 <div style={{ fontSize: '3rem', color: '#ff9800' }}>
@@ -241,6 +262,29 @@ function Home() {
               </div>
             </Link>
 
+            {/* Espace Dépanneur - NOUVEAU */}
+            <Link to="/depanneur/login" style={{ textDecoration: 'none' }}>
+              <div className="card text-center" style={{ 
+                height: '100%', 
+                cursor: 'pointer', 
+                transition: 'transform 0.3s ease',
+                border: '2px solid rgba(76, 175, 80, 0.3)'
+              }}>
+                <div style={{ fontSize: '3rem', color: '#4caf50' }}>
+                  <FontAwesomeIcon icon={faTruck} />
+                </div>
+                <h3>Espace Dépanneur</h3>
+                <p className="text-light">
+                  Gérez vos missions, suivez votre position en temps réel et optimisez vos trajets
+                </p>
+                <button className="mt-20" style={{ backgroundColor: '#4caf50' }}>
+                  Accéder
+                  <FontAwesomeIcon icon={faArrowRight} style={{ marginLeft: '10px' }} />
+                </button>
+              </div>
+            </Link>
+
+            {/* Espace Administration */}
             <Link to="/admin/login" style={{ textDecoration: 'none' }}>
               <div className="card text-center" style={{ height: '100%', cursor: 'pointer', transition: 'transform 0.3s ease' }}>
                 <div style={{ fontSize: '3rem', color: '#e94560' }}>

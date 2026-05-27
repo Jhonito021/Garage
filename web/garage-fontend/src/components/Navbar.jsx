@@ -12,7 +12,8 @@ import {
   faUser, 
   faPlus, 
   faSignInAlt,
-  faTruck
+  faTruck,
+  faMapMarkerAlt      // ← Déplacé ici en haut
 } from '@fortawesome/free-solid-svg-icons';
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import api from '../services/api';
@@ -22,10 +23,14 @@ function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const depanneur = JSON.parse(localStorage.getItem('depanneur') || '{}');
     const isLoggedIn = !!localStorage.getItem('user');
+    const isDepanneurLoggedIn = !!localStorage.getItem('depanneur');
     
-    // Ne pas afficher la navbar sur les pages admin ET technicien
-    if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/technicien')) {
+    // Ne pas afficher la navbar sur les pages admin, technicien ET dépanneur
+    if (location.pathname.startsWith('/admin') || 
+        location.pathname.startsWith('/technicien') ||
+        location.pathname.startsWith('/depanneur')) {
         return null;
     }
 
@@ -40,6 +45,17 @@ function Navbar() {
         }
     };
 
+    const handleDepanneurLogout = async () => {
+        try {
+            await api.post('/auth/logout');
+        } catch (err) {
+            console.error('Erreur déconnexion:', err);
+        } finally {
+            localStorage.removeItem('depanneur');
+            navigate('/');
+        }
+    };
+
     return (
         <nav className="navbar">
             <div className="navbar-brand">
@@ -48,7 +64,27 @@ function Navbar() {
                     Garage Pro
                 </Link>
             </div>
-            {isLoggedIn && (
+            
+            {/* Si connecté en tant que dépanneur - afficher un menu spécifique */}
+            {isDepanneurLoggedIn && !isLoggedIn && (
+                <div className="navbar-links">
+                    <Link to="/depanneur">
+                        <FontAwesomeIcon icon={faTachometerAlt} style={{ marginRight: '5px' }} />
+                        Tableau de bord
+                    </Link>
+                    <Link to="/depanneur/missions">
+                        <FontAwesomeIcon icon={faTruck} style={{ marginRight: '5px' }} />
+                        Missions
+                    </Link>
+                    <Link to="/depanneur/suivi">
+                        <FontAwesomeIcon icon={faMapMarkerAlt} style={{ marginRight: '5px' }} />
+                        Suivi GPS
+                    </Link>
+                </div>
+            )}
+            
+            {/* Si connecté en tant que client */}
+            {isLoggedIn && !isDepanneurLoggedIn && (
                 <div className="navbar-links">
                     <Link to="/dashboard">
                         <FontAwesomeIcon icon={faTachometerAlt} style={{ marginRight: '5px' }} />
@@ -82,8 +118,25 @@ function Navbar() {
                     </Link>
                 </div>
             )}
+            
             <div className="navbar-user">
-                {isLoggedIn ? (
+                {/* Si connecté en tant que dépanneur */}
+                {isDepanneurLoggedIn && !isLoggedIn && (
+                    <>
+                        <ThemeToggle />
+                        <span style={{ color: '#4caf50', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <FontAwesomeIcon icon={faTruck} />
+                            {depanneur.prenom} {depanneur.nom}
+                        </span>
+                        <button onClick={handleDepanneurLogout} style={{ backgroundColor: '#f44336' }}>
+                            <FontAwesomeIcon icon={faSignOutAlt} style={{ marginRight: '5px' }} />
+                            Déconnexion
+                        </button>
+                    </>
+                )}
+                
+                {/* Si connecté en tant que client */}
+                {isLoggedIn && !isDepanneurLoggedIn && (
                     <>
                         <ThemeToggle />
                         <Link to="/profil">
@@ -95,7 +148,10 @@ function Navbar() {
                             Déconnexion
                         </button>
                     </>
-                ) : (
+                )}
+                
+                {/* Si non connecté */}
+                {!isLoggedIn && !isDepanneurLoggedIn && (
                     <div className="flex gap-10">
                         <ThemeToggle />
                         <Link to="/login">
