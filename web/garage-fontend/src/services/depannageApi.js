@@ -123,3 +123,31 @@ export const mettreAJourPosition = async (demandeId, lat, lng) => {
         throw error;
     }
 };
+
+/**
+ * Admin - Récupérer la liste des dépanneurs disponibles
+ */
+export const getDepanneurs = async () => {
+    try {
+        const response = await api.get('/depannage/depanneurs');
+        return response.data;
+    } catch (error) {
+        console.error('Erreur getDepanneurs:', error);
+        throw error;
+    }
+};
+
+/**
+ * Admin - Assigner un dépanneur à une demande
+ */
+export const assignerDepanneur = async (demandeId, technicienId) => {
+    try {
+        const response = await api.put(`/depannage/demande/${demandeId}/assigner`, {
+            technicien_id: technicienId
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur assignerDepanneur:', error);
+        throw error;
+    }
+};

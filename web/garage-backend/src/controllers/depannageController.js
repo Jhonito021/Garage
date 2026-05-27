@@ -448,6 +448,92 @@ const testSession = async (req, res) => {
     });
 };
 
+/**
+ * Admin - Récupérer la liste des dépanneurs (techniciens)
+ */
+const getDepanneurs = async (req, res) => {
+    // VERSION TEST - À ENLEVER EN PRODUCTION
+    // Permet l'accès pour les tests sans vérification de rôle
+    
+    // Vérifier juste que l'utilisateur est connecté
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    try {
+        const [rows] = await db.query(
+            `SELECT id, nom, prenom, email, telephone, specialite, actif 
+             FROM utilisateurs 
+             WHERE role = 'technicien' AND actif = 1
+             ORDER BY nom, prenom`
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error('Erreur getDepanneurs:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+/**
+ * Admin - Assigner un dépanneur à une demande
+ */
+const assignerDepanneur = async (req, res) => {
+    // VERSION TEST - À ENLEVER EN PRODUCTION
+    
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    const { id } = req.params;
+    const { technicien_id } = req.body;
+
+    if (!technicien_id) {
+        return res.status(400).json({ error: 'Veuillez sélectionner un dépanneur' });
+    }
+
+    try {
+        // Vérifier que la demande existe
+        const [demande] = await db.query(
+            'SELECT id, statut FROM depannage_demandes WHERE id = ?',
+            [id]
+        );
+
+        if (demande.length === 0) {
+            return res.status(404).json({ error: 'Demande non trouvée' });
+        }
+
+        if (demande[0].statut !== 'en_attente') {
+            return res.status(400).json({ error: 'Cette demande a déjà été traitée' });
+        }
+
+        const [technicien] = await db.query(
+            'SELECT id, nom, prenom FROM utilisateurs WHERE id = ? AND role = "technicien" AND actif = 1',
+            [technicien_id]
+        );
+
+        if (technicien.length === 0) {
+            return res.status(404).json({ error: 'Dépanneur non trouvé' });
+        }
+
+        await db.query(
+            `UPDATE depannage_demandes 
+             SET technicien_id = ?, 
+                 statut = 'acceptee',
+                 date_traitement = NOW()
+             WHERE id = ?`,
+            [technicien_id, id]
+        );
+
+        res.json({ 
+            success: true, 
+            message: `Dépanneur assigné avec succès`
+        });
+    } catch (err) {
+        console.error('Erreur assignerDepanneur:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 // Export de toutes les fonctions
 module.exports = {
     demanderDepannage,
@@ -461,5 +547,7 @@ module.exports = {
     mettreAJourPositionTechnicien,
     terminerDepannage,
     getDepannageStats,
-    testSession
+    testSession,
+    getDepanneurs,        // NOUVEAU
+    assignerDepanneur     // NOUVEAU
 };

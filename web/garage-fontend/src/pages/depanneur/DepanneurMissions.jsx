@@ -1,116 +1,185 @@
 // frontend/src/pages/depanneur/DepanneurMissions.jsx
+// Version où le dépanneur ne peut PAS accepter lui-même
+// Il voit uniquement les missions qui lui ont été assignées par l'admin
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTruck, faSpinner, faMapMarkerAlt, faRefresh, faArrowLeft, faPhone, faClock, faLocationDot } from '@fortawesome/free-solid-svg-icons';
-import { Link } from 'react-router-dom';
+import { 
+  faTruck, 
+  faSpinner, 
+  faMapMarkerAlt, 
+  faPhone, 
+  faCheckCircle,
+  faClock,
+  faLocationDot,
+  faUser,
+  faCalendarAlt,
+  faStop
+} from '@fortawesome/free-solid-svg-icons';
 import DepanneurSidebar from '../../components/DepanneurSidebar';
-import DepanneurMap from '../../components/DepanneurMap';
-import DepanneurDemandesList from '../../components/DepanneurDemandesList';
-import { getTechnicienDemandes } from '../../services/depannageApi';
+import { getTechnicienDemandes, terminerMission } from '../../services/depannageApi';
 
 function DepanneurMissions() {
-    const [demandes, setDemandes] = useState([]);
-    const [selectedDemande, setSelectedDemande] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [filter, setFilter] = useState('all');
-    const [autoRefresh, setAutoRefresh] = useState(true);
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionLoading, setActionLoading] = useState(null);
 
-    const fetchDemandes = useCallback(async () => {
-        try {
-            const data = await getTechnicienDemandes();
-            setDemandes(data);
-            setError('');
-        } catch (err) {
-            console.error('Erreur:', err);
-            setError('Erreur lors du chargement');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchDemandes();
-        let interval;
-        if (autoRefresh) interval = setInterval(fetchDemandes, 10000);
-        return () => { if (interval) clearInterval(interval); };
-    }, [autoRefresh, fetchDemandes]);
-
-    const filteredDemandes = demandes.filter(d => {
-        if (filter === 'all') return true;
-        if (filter === 'en_attente') return d.statut === 'en_attente';
-        if (filter === 'acceptee') return d.statut === 'acceptee';
-        if (filter === 'terminee') return d.statut === 'terminee';
-        return true;
-    });
-
-    const stats = {
-        en_attente: demandes.filter(d => d.statut === 'en_attente').length,
-        acceptee: demandes.filter(d => d.statut === 'acceptee').length,
-        terminee: demandes.filter(d => d.statut === 'terminee').length
-    };
-
-    if (loading) {
-        return (
-            <div className="admin-container">
-                <DepanneurSidebar />
-                <div className="admin-content">
-                    <div style={{ textAlign: 'center', padding: '60px' }}>
-                        <FontAwesomeIcon icon={faSpinner} spin size="3x" color="#4caf50" />
-                        <h3>Chargement des missions...</h3>
-                    </div>
-                </div>
-            </div>
-        );
+  // Récupérer les missions assignées au dépanneur
+  const fetchMissions = useCallback(async () => {
+    try {
+      const data = await getTechnicienDemandes();
+      setMissions(data);
+      setError('');
+    } catch (err) {
+      console.error('Erreur:', err);
+      setError('Erreur lors du chargement des missions');
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
+  useEffect(() => {
+    fetchMissions();
+    const interval = setInterval(fetchMissions, 10000);
+    return () => clearInterval(interval);
+  }, [fetchMissions]);
+
+  // Terminer une mission (seule action possible pour le dépanneur)
+  const handleTerminer = async (missionId) => {
+    if (window.confirm('Confirmez-vous la fin de cette mission ?')) {
+      setActionLoading(missionId);
+      try {
+        await terminerMission(missionId);
+        await fetchMissions();
+        alert('Mission terminée !');
+      } catch (err) {
+        alert(err.response?.data?.error || 'Erreur lors de la fin de mission');
+      } finally {
+        setActionLoading(null);
+      }
+    }
+  };
+
+  // Missions en cours (acceptées par l'admin)
+  const missionsEnCours = missions.filter(m => m.statut === 'acceptee');
+  const missionsTerminees = missions.filter(m => m.statut === 'terminee');
+
+  if (loading) {
     return (
-        <div className="admin-container">
-            <DepanneurSidebar />
-            <div className="admin-content">
-                <div style={{ marginBottom: '30px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <div>
-                            <h1><FontAwesomeIcon icon={faTruck} style={{ marginRight: '10px', color: '#4caf50' }} />Missions de dépannage</h1>
-                            <p className="text-light">Gérez vos missions</p>
-                        </div>
-                        <Link to="/depanneur">
-                            <button className="btn-outline"><FontAwesomeIcon icon={faArrowLeft} /> Retour</button>
-                        </Link>
-                    </div>
-                    <div className="grid-3" style={{ marginTop: '20px' }}>
-                        <div className="stat-card"><div className="stat-card-value" style={{ color: '#ff9800' }}>{stats.en_attente}</div><div className="stat-card-label">En attente</div></div>
-                        <div className="stat-card"><div className="stat-card-value" style={{ color: '#4caf50' }}>{stats.acceptee}</div><div className="stat-card-label">En cours</div></div>
-                        <div className="stat-card"><div className="stat-card-value" style={{ color: '#2196f3' }}>{stats.terminee}</div><div className="stat-card-label">Terminées</div></div>
-                    </div>
-                </div>
-
-                <div className="card" style={{ marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            <button onClick={() => setFilter('all')} className={filter === 'all' ? 'btn-primary' : 'btn-outline'}>Toutes ({demandes.length})</button>
-                            <button onClick={() => setFilter('en_attente')} className={filter === 'en_attente' ? 'btn-primary' : 'btn-outline'}>En attente ({stats.en_attente})</button>
-                            <button onClick={() => setFilter('acceptee')} className={filter === 'acceptee' ? 'btn-primary' : 'btn-outline'}>En cours ({stats.acceptee})</button>
-                            <button onClick={() => setFilter('terminee')} className={filter === 'terminee' ? 'btn-primary' : 'btn-outline'}>Terminées ({stats.terminee})</button>
-                        </div>
-                        <button onClick={() => setAutoRefresh(!autoRefresh)} style={{ backgroundColor: autoRefresh ? '#4caf50' : 'transparent', border: '1px solid var(--border-color)' }}>
-                            <FontAwesomeIcon icon={faRefresh} /> Auto-refresh {autoRefresh ? 'ON' : 'OFF'}
-                        </button>
-                    </div>
-                </div>
-
-                {error && <div className="card" style={{ backgroundColor: 'rgba(244, 67, 54, 0.1)', marginBottom: '20px' }}><p className="text-danger">{error}</p></div>}
-
-                <div className="grid-2" style={{ gap: '30px' }}>
-                    <DepanneurDemandesList demandes={filteredDemandes} selectedDemande={selectedDemande} onSelectDemande={setSelectedDemande} onRefresh={fetchDemandes} />
-                    <div>
-                        <h2><FontAwesomeIcon icon={faMapMarkerAlt} style={{ marginRight: '10px', color: '#4caf50' }} />Suivi de mission</h2>
-                        {selectedDemande ? <DepanneurMap demande={selectedDemande} onMissionUpdate={fetchDemandes} /> : <div className="card text-center" style={{ padding: '60px' }}><p>Sélectionnez une mission</p></div>}
-                    </div>
-                </div>
-            </div>
+      <div className="admin-container">
+        <DepanneurSidebar />
+        <div className="admin-content">
+          <div style={{ textAlign: 'center', padding: '60px' }}>
+            <FontAwesomeIcon icon={faSpinner} spin size="3x" color="#4caf50" />
+            <h3>Chargement des missions...</h3>
+          </div>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="admin-container">
+      <DepanneurSidebar />
+      <div className="admin-content">
+        <h1 style={{ marginBottom: '20px' }}>
+          <FontAwesomeIcon icon={faTruck} style={{ marginRight: '10px', color: '#4caf50' }} />
+          Mes missions
+        </h1>
+
+        {error && (
+          <div className="card" style={{ backgroundColor: 'rgba(244, 67, 54, 0.1)', marginBottom: '20px' }}>
+            <p className="text-danger">{error}</p>
+          </div>
+        )}
+
+        {/* Missions en cours (assignées par l'admin) */}
+        <div className="card" style={{ marginBottom: '30px' }}>
+          <h2 style={{ color: '#4caf50' }}>
+            <FontAwesomeIcon icon={faTruck} style={{ marginRight: '10px' }} />
+            Missions en cours ({missionsEnCours.length})
+          </h2>
+          
+          {missionsEnCours.length === 0 ? (
+            <p className="text-light text-center" style={{ padding: '20px' }}>
+              Aucune mission assignée pour le moment
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {missionsEnCours.map(mission => (
+                <div key={mission.id} className="card" style={{ backgroundColor: 'rgba(76, 175, 80, 0.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ marginBottom: '10px' }}>
+                        <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
+                        {mission.client_prenom} {mission.client_nom}
+                      </h3>
+                      <p style={{ fontSize: '13px', marginBottom: '5px' }}>
+                        <FontAwesomeIcon icon={faPhone} style={{ marginRight: '8px' }} />
+                        {mission.client_telephone || 'Pas de téléphone'}
+                      </p>
+                      <p style={{ fontSize: '13px', marginBottom: '5px' }}>
+                        <FontAwesomeIcon icon={faCalendarAlt} style={{ marginRight: '8px' }} />
+                        Demandé le: {new Date(mission.date_demande).toLocaleString()}
+                      </p>
+                      <p style={{ fontSize: '13px', marginBottom: '5px' }}>
+                        <FontAwesomeIcon icon={faLocationDot} style={{ marginRight: '8px' }} />
+                        Position: {parseFloat(mission.lat).toFixed(4)}, {parseFloat(mission.lng).toFixed(4)}
+                      </p>
+                    </div>
+                    <div>
+                      <button 
+                        onClick={() => handleTerminer(mission.id)}
+                        disabled={actionLoading === mission.id}
+                        style={{ backgroundColor: '#2196f3', padding: '10px 20px' }}
+                      >
+                        {actionLoading === mission.id ? (
+                          <FontAwesomeIcon icon={faSpinner} spin />
+                        ) : (
+                          <FontAwesomeIcon icon={faStop} style={{ marginRight: '5px' }} />
+                        )}
+                        Terminer la mission
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Missions terminées */}
+        {missionsTerminees.length > 0 && (
+          <div className="card">
+            <h2 style={{ color: '#2196f3' }}>
+              <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '10px' }} />
+              Missions terminées ({missionsTerminees.length})
+            </h2>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {missionsTerminees.slice(0, 5).map(mission => (
+                <div key={mission.id} style={{ 
+                  padding: '10px', 
+                  borderBottom: '1px solid var(--border-color)',
+                  display: 'flex',
+                  justifyContent: 'space-between'
+                }}>
+                  <div>
+                    <strong>{mission.client_prenom} {mission.client_nom}</strong>
+                    <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                      {new Date(mission.date_arrivee || mission.date_traitement).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className="badge badge-info">Terminée</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default DepanneurMissions;

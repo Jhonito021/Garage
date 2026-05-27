@@ -3,15 +3,17 @@ const express = require('express');
 const {
     demanderDepannage,
     getDemandesDepannage,
-    getTechnicienDemandes,        // ← IMPORTANT
+    getTechnicienDemandes,
     accepterDemande,
     refuserDemande,
-    accepterMission,              // ← IMPORTANT
-    terminerMission,              // ← IMPORTANT
+    accepterMission,
+    terminerMission,
     suivreDemande,
-    mettreAJourPositionTechnicien, // ← IMPORTANT
+    mettreAJourPositionTechnicien,
     terminerDepannage,
-    getDepannageStats
+    getDepannageStats,
+    getDepanneurs,           // ← AJOUTÉ
+    assignerDepanneur        // ← AJOUTÉ
 } = require('../controllers/depannageController');
 
 const router = express.Router();
@@ -26,6 +28,8 @@ router.get('/demandes', getDemandesDepannage);
 router.put('/demande/:id/accepter', accepterDemande);
 router.put('/demande/:id/refuser', refuserDemande);
 router.get('/stats', getDepannageStats);
+router.get('/depanneurs', getDepanneurs);              // ← NOUVEAU
+router.put('/demande/:id/assigner', assignerDepanneur); // ← NOUVEAU
 
 // ==================== ROUTES TECHNICIEN / DÉPANNEUR ====================
 router.get('/technicien/demandes', getTechnicienDemandes);
