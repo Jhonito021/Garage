@@ -13,6 +13,8 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.16.1",
+    "leaflet": "^1.9.4",
+    "leaflet.locatecontrol": "^0.90.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1",

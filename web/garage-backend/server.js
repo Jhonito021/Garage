@@ -90,6 +90,7 @@ const utilisateurRoutes = require('./src/routes/utilisateurs');
 const suiviRoutes = require('./src/routes/suivi');
 const configurationRoutes = require('./src/routes/configurations');
 // const paiementRoutes = require('./src/routes/paiement');
+const depannageRoutes = require('./src/routes/depannage');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
@@ -108,6 +109,7 @@ app.use('/api/utilisateurs', utilisateurRoutes);
 app.use('/api/suivi', suiviRoutes);
 app.use('/api/configurations', configurationRoutes);
 // app.use('/api/paiement', paiementRoutes);
+app.use('/api/depannage', depannageRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Serveur démarré' });

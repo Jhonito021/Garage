@@ -199,7 +199,7 @@ function Home() {
       </div>
 
       {/* Fonctionnalités */}
-      <div className="container" style={{ padding: '80px 20px' }}>
+      {/* <div className="container" style={{ padding: '80px 20px' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '50px' }}>
           <FontAwesomeIcon icon={faWrench} style={{ marginRight: '10px', color: 'var(--secondary-color)' }} />
           Nos services
@@ -215,7 +215,7 @@ function Home() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Accès rapides - Espaces professionnels */}
       <div style={{ backgroundColor: 'var(--primary-color)', padding: '80px 20px' }}>

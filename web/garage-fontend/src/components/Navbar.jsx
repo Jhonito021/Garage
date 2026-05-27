@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCar, faTachometerAlt, faCalendarAlt, faHistory, faFileInvoice, faSignOutAlt, faUser, faPlus, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCar, faTachometerAlt, faCalendarAlt, faHistory, faFileInvoice, faSignOutAlt, faUser, faPlus, faSignInAlt, faTruck } from '@fortawesome/free-solid-svg-icons';
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import api from '../services/api';
 
@@ -60,6 +60,17 @@ function Navbar() {
                     <Link to="/factures">
                         <FontAwesomeIcon icon={faFileInvoice} style={{ marginRight: '5px' }} />
                         Factures
+                    </Link>
+                    {/* NOUVEAU : Lien Dépannage d'urgence */}
+                    <Link to="/depannage" style={{ 
+                        backgroundColor: '#e94560', 
+                        color: 'white',
+                        padding: '5px 12px',
+                        borderRadius: '20px',
+                        fontWeight: 'bold'
+                    }}>
+                        <FontAwesomeIcon icon={faTruck} style={{ marginRight: '5px' }} />
+                        Dépannage ⚡
                     </Link>
                     {/* <Link to="/profil">
                         <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />

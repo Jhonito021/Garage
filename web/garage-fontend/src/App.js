@@ -17,6 +17,7 @@ import Rdv from './pages/client/Rdv';
 import Historique from './pages/client/Historique';
 import Factures from './pages/client/Factures';
 import SuiviInterventions from './pages/client/SuiviInterventions';
+import Depannage from './pages/client/Depannage'; // 1
 
 // Pages admin
 import AdminLogin from './pages/admin/AdminLogin';
@@ -31,6 +32,7 @@ import Vidanges from './pages/admin/Vidanges';
 import Parametres from './pages/admin/Parametres';
 import Techniciens from './pages/admin/Techniciens';
 import Activites from './pages/admin/Activites';
+import AdminDepannage from './pages/admin/AdminDepannage';
 
 // Pages technicien
 import TechnicienLogin from './pages/technicien/TechnicienLogin';
@@ -55,6 +57,7 @@ function App() {
                 <Route path="/factures" element={<PrivateRoute><Factures /></PrivateRoute>} />
                 <Route path="/suivi" element={<PrivateRoute><SuiviInterventions /></PrivateRoute>} />
                 <Route path="/profil" element={<PrivateRoute><Profil /></PrivateRoute>} />
+                <Route path="/depannage" element={<PrivateRoute><Depannage /></PrivateRoute>} />
                 
                 {/* Routes admin */}
                 <Route path="/admin/login" element={<AdminLogin />} />
@@ -69,6 +72,7 @@ function App() {
                 <Route path="/admin/parametres" element={<AdminRoute><Parametres /></AdminRoute>} />
                 <Route path="/admin/techniciens" element={<AdminRoute><Techniciens /></AdminRoute>} />
                 <Route path="/admin/activites" element={<AdminRoute><Activites /></AdminRoute>} />
+                <Route path="/admin/depannage" element={<AdminRoute><AdminDepannage /></AdminRoute>} />
 
                 {/* Routes technicien (technicien uniquement) */}
                 <Route path="/technicien/login" element={<TechnicienLogin />} />
