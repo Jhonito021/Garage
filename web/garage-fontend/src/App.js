@@ -1,6 +1,8 @@
+// frontend/src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
@@ -17,7 +19,7 @@ import Rdv from './pages/client/Rdv';
 import Historique from './pages/client/Historique';
 import Factures from './pages/client/Factures';
 import SuiviInterventions from './pages/client/SuiviInterventions';
-import Depannage from './pages/client/Depannage'; // 1
+import Depannage from './pages/client/Depannage';
 
 // Pages admin
 import AdminLogin from './pages/admin/AdminLogin';
@@ -43,46 +45,45 @@ import Acceuil from './pages/Home';
 
 function App() {
     return (
-        <Router>
-            <Navbar />
-            <Routes>
-                {/* Routes client */}
-                <Route path="/" element={<Acceuil />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-                <Route path="/vehicles" element={<PrivateRoute><Vehicles /></PrivateRoute>} />
-                <Route path="/rdv" element={<PrivateRoute><Rdv /></PrivateRoute>} />
-                <Route path="/historique" element={<PrivateRoute><Historique /></PrivateRoute>} />
-                <Route path="/factures" element={<PrivateRoute><Factures /></PrivateRoute>} />
-                <Route path="/suivi" element={<PrivateRoute><SuiviInterventions /></PrivateRoute>} />
-                <Route path="/profil" element={<PrivateRoute><Profil /></PrivateRoute>} />
-                <Route path="/depannage" element={<PrivateRoute><Depannage /></PrivateRoute>} />
-                
-                {/* Routes admin */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                <Route path="/admin/planning" element={<AdminRoute><Planning /></AdminRoute>} />
-                <Route path="/admin/interventions" element={<AdminRoute><Interventions /></AdminRoute>} />
-                <Route path="/admin/stocks" element={<AdminRoute><Stocks /></AdminRoute>} />
-                <Route path="/admin/devis" element={<AdminRoute><Devis /></AdminRoute>} />
-                <Route path="/admin/factures" element={<AdminRoute><FacturesGestion /></AdminRoute>} />
-                <Route path="/admin/clients" element={<AdminRoute><Clients /></AdminRoute>} />
-                <Route path="/admin/vidanges" element={<AdminRoute><Vidanges /></AdminRoute>} />
-                <Route path="/admin/parametres" element={<AdminRoute><Parametres /></AdminRoute>} />
-                <Route path="/admin/techniciens" element={<AdminRoute><Techniciens /></AdminRoute>} />
-                <Route path="/admin/activites" element={<AdminRoute><Activites /></AdminRoute>} />
-                <Route path="/admin/depannage" element={<AdminRoute><AdminDepannage /></AdminRoute>} />
+        <ThemeProvider>
+            <Router>
+                <Navbar />
+                <Routes>
+                    {/* Routes client */}
+                    <Route path="/" element={<Acceuil />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                    <Route path="/vehicles" element={<PrivateRoute><Vehicles /></PrivateRoute>} />
+                    <Route path="/rdv" element={<PrivateRoute><Rdv /></PrivateRoute>} />
+                    <Route path="/historique" element={<PrivateRoute><Historique /></PrivateRoute>} />
+                    <Route path="/factures" element={<PrivateRoute><Factures /></PrivateRoute>} />
+                    <Route path="/suivi" element={<PrivateRoute><SuiviInterventions /></PrivateRoute>} />
+                    <Route path="/profil" element={<PrivateRoute><Profil /></PrivateRoute>} />
+                    <Route path="/depannage" element={<PrivateRoute><Depannage /></PrivateRoute>} />
+                    
+                    {/* Routes admin */}
+                    <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                    <Route path="/admin/planning" element={<AdminRoute><Planning /></AdminRoute>} />
+                    <Route path="/admin/interventions" element={<AdminRoute><Interventions /></AdminRoute>} />
+                    <Route path="/admin/stocks" element={<AdminRoute><Stocks /></AdminRoute>} />
+                    <Route path="/admin/devis" element={<AdminRoute><Devis /></AdminRoute>} />
+                    <Route path="/admin/factures" element={<AdminRoute><FacturesGestion /></AdminRoute>} />
+                    <Route path="/admin/clients" element={<AdminRoute><Clients /></AdminRoute>} />
+                    <Route path="/admin/vidanges" element={<AdminRoute><Vidanges /></AdminRoute>} />
+                    <Route path="/admin/parametres" element={<AdminRoute><Parametres /></AdminRoute>} />
+                    <Route path="/admin/techniciens" element={<AdminRoute><Techniciens /></AdminRoute>} />
+                    <Route path="/admin/activites" element={<AdminRoute><Activites /></AdminRoute>} />
+                    <Route path="/admin/depannage" element={<AdminRoute><AdminDepannage /></AdminRoute>} />
 
-                {/* Routes technicien (technicien uniquement) */}
-                <Route path="/technicien/login" element={<TechnicienLogin />} />
-                <Route path="/technicien" element={<TechnicienRoute><TechnicienDashboard /></TechnicienRoute>} />
-                <Route path="/technicien/interventions" element={<TechnicienRoute><TechnicienInterventions /></TechnicienRoute>} />
-
-                {/* Routes admin pour interventions (admin et technicien) */}
-                <Route path="/admin/interventions" element={<PrivateRoute><Interventions /></PrivateRoute>} />
-            </Routes>
-        </Router>
+                    {/* Routes technicien */}
+                    <Route path="/technicien/login" element={<TechnicienLogin />} />
+                    <Route path="/technicien" element={<TechnicienRoute><TechnicienDashboard /></TechnicienRoute>} />
+                    <Route path="/technicien/interventions" element={<TechnicienRoute><TechnicienInterventions /></TechnicienRoute>} />
+                </Routes>
+            </Router>
+        </ThemeProvider>
     );
 }
 

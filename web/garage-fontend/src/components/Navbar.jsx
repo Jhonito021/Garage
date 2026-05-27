@@ -1,9 +1,22 @@
+// frontend/src/components/Navbar.jsx
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCar, faTachometerAlt, faCalendarAlt, faHistory, faFileInvoice, faSignOutAlt, faUser, faPlus, faSignInAlt, faTruck } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faCar, 
+  faTachometerAlt, 
+  faCalendarAlt, 
+  faHistory, 
+  faFileInvoice, 
+  faSignOutAlt, 
+  faUser, 
+  faPlus, 
+  faSignInAlt,
+  faTruck
+} from '@fortawesome/free-solid-svg-icons';
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 import api from '../services/api';
+import ThemeToggle from './ThemeToggle';
 
 function Navbar() {
     const navigate = useNavigate();
@@ -53,15 +66,10 @@ function Navbar() {
                         <FontAwesomeIcon icon={faChartLine} style={{ marginRight: '5px' }} />
                         Suivi
                     </Link>
-                    {/* <Link to="/historique">
-                        <FontAwesomeIcon icon={faHistory} style={{ marginRight: '5px' }} />
-                        Historique
-                    </Link> */}
                     <Link to="/factures">
                         <FontAwesomeIcon icon={faFileInvoice} style={{ marginRight: '5px' }} />
                         Factures
                     </Link>
-                    {/* NOUVEAU : Lien Dépannage d'urgence */}
                     <Link to="/depannage" style={{ 
                         backgroundColor: '#e94560', 
                         color: 'white',
@@ -72,24 +80,16 @@ function Navbar() {
                         <FontAwesomeIcon icon={faTruck} style={{ marginRight: '5px' }} />
                         Dépannage ⚡
                     </Link>
-                    {/* <Link to="/profil">
-                        <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />
-                        Mon profil
-                    </Link> */}
                 </div>
             )}
             <div className="navbar-user">
                 {isLoggedIn ? (
                     <>
-                        {/* <span>
-                            <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />
-                            {user.prenom} {user.nom}
-                        </span> */}
+                        <ThemeToggle />
                         <Link to="/profil">
                             <FontAwesomeIcon icon={faUser} style={{ marginRight: '5px' }} />
                             {user.prenom} {user.nom}    
                         </Link>
-                        
                         <button onClick={handleLogout}>
                             <FontAwesomeIcon icon={faSignOutAlt} style={{ marginRight: '5px' }} />
                             Déconnexion
@@ -97,6 +97,7 @@ function Navbar() {
                     </>
                 ) : (
                     <div className="flex gap-10">
+                        <ThemeToggle />
                         <Link to="/login">
                             <button className="btn-outline">
                                 <FontAwesomeIcon icon={faSignInAlt} style={{ marginRight: '5px' }} />
