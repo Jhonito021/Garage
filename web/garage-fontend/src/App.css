@@ -1071,3 +1071,28 @@ label {
         width: 100%;
     }
 }
+
+/* Animation de fondu pour le slider */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    } to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    } to {
+        opacity: 0;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+.fade-out {
+    animation: fadeOut 0.8s ease-in-out;
+}

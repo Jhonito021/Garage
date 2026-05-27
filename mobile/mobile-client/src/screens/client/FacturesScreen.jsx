@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +17,10 @@ import api from '../../services/api';
 export default function FacturesScreen() {
   const [factures, setFactures] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [payingId, setPayingId] = useState(null);
+  const [confirmationVisible, setConfirmationVisible] = useState(null);
+  const [detailVisible, setDetailVisible] = useState(null);
+  const [detailFacture, setDetailFacture] = useState(null);
 
   const fetchFactures = async () => {
     try {
@@ -41,11 +47,50 @@ export default function FacturesScreen() {
     fetchFactures();
   }, []);
 
-  const handleDownload = async (id) => {
-    Alert.alert(
-      'Information',
-      'Le téléchargement des factures sera disponible dans une prochaine version.'
-    );
+  const handlePayer = async (id) => {
+    setPayingId(id);
+    setConfirmationVisible(null);
+    
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      const user = JSON.parse(userData);
+      
+      await api.put(`/factures/${id}/payer`, { client_id: user.id });
+      setFactures(factures.map(f => 
+        f.id === id ? { ...f, statut_paiement: 'payé' } : f
+      ));
+      Alert.alert('Succès', 'Facture payée avec succès');
+    } catch (err) {
+      Alert.alert('Erreur', err.response?.data?.error || 'Erreur lors du paiement');
+    } finally {
+      setPayingId(null);
+    }
+  };
+
+  const openConfirmation = (id) => {
+    setConfirmationVisible(id);
+  };
+
+  const closeConfirmation = () => {
+    setConfirmationVisible(null);
+  };
+
+  const openDetail = async (id) => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      const user = JSON.parse(userData);
+      
+      const { data } = await api.get(`/factures/${id}?client_id=${user.id}`);
+      setDetailFacture(data);
+      setDetailVisible(id);
+    } catch (err) {
+      Alert.alert('Erreur', 'Erreur lors du chargement du détail');
+    }
+  };
+
+  const closeDetail = () => {
+    setDetailVisible(null);
+    setDetailFacture(null);
   };
 
   const formatMontant = (montant) => {
@@ -61,8 +106,8 @@ export default function FacturesScreen() {
           <Ionicons name="document-text" size={20} color="#e94560" />
           <Text style={styles.cardTitle}> Facture #{item.id}</Text>
         </View>
-        <TouchableOpacity onPress={() => handleDownload(item.id)} style={styles.downloadButton}>
-          <Ionicons name="download" size={18} color="#e94560" />
+        <TouchableOpacity onPress={() => openDetail(item.id)} style={styles.detailButton}>
+          <Ionicons name="eye" size={20} color="#e94560" />
         </TouchableOpacity>
       </View>
 
@@ -101,7 +146,174 @@ export default function FacturesScreen() {
           </Text>
         </View>
       </View>
+
+      {item.statut_paiement !== 'payé' && (
+        <TouchableOpacity 
+          style={styles.payButton} 
+          onPress={() => openConfirmation(item.id)}
+          disabled={payingId === item.id}
+        >
+          <Ionicons name="card" size={16} color="#fff" />
+          <Text style={styles.payButtonText}>
+            {payingId === item.id ? 'Paiement en cours...' : 'Payer au garage'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Modal de confirmation de paiement */}
+      {confirmationVisible === item.id && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirmation de paiement</Text>
+            <Ionicons name="card" size={40} color="#e94560" style={styles.modalIcon} />
+            <Text style={styles.modalText}>
+              Confirmez-vous avoir payé la facture <Text style={styles.modalTextBold}>#{item.id}</Text> au garage ?
+            </Text>
+            <Text style={styles.modalAmount}>
+              Montant: <Text style={styles.modalAmountBold}>{formatMontant(item.montant_total)} €</Text>
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalCancelButton} onPress={closeConfirmation}>
+                <Text style={styles.modalCancelText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalConfirmButton} onPress={() => handlePayer(item.id)}>
+                <Text style={styles.modalConfirmText}>Confirmer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
+  );
+
+  // Modal de détail de facture
+  const DetailModal = () => (
+    <Modal
+      visible={detailVisible !== null}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={closeDetail}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.detailModalContent}>
+          <View style={styles.detailModalHeader}>
+            <Text style={styles.detailModalTitle}>
+              <Ionicons name="document-text" size={20} color="#e94560" /> Détail de la facture
+            </Text>
+            <TouchableOpacity onPress={closeDetail}>
+              <Ionicons name="close" size={24} color="#e94560" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {detailFacture && (
+              <View>
+                {/* Informations générales */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailSectionTitle}>Informations générales</Text>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Numéro :</Text>
+                    <Text style={styles.detailValue}>#{detailFacture.id}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Date :</Text>
+                    <Text style={styles.detailValue}>
+                      {new Date(detailFacture.date_emission).toLocaleDateString('fr-FR')}
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Statut :</Text>
+                    <Text style={[
+                      styles.detailValue,
+                      detailFacture.statut_paiement === 'payé' ? styles.statusPaid : styles.statusUnpaid
+                    ]}>
+                      {detailFacture.statut_paiement === 'payé' ? 'Payée' : 'Impayée'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Client */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailSectionTitle}>Client</Text>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Nom :</Text>
+                    <Text style={styles.detailValue}>{detailFacture.prenom} {detailFacture.nom}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Email :</Text>
+                    <Text style={styles.detailValue}>{detailFacture.email}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Adresse :</Text>
+                    <Text style={styles.detailValue}>{detailFacture.adresse || 'Non renseignée'}</Text>
+                  </View>
+                </View>
+
+                {/* Véhicule */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailSectionTitle}>Véhicule</Text>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Marque :</Text>
+                    <Text style={styles.detailValue}>{detailFacture.marque}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Modèle :</Text>
+                    <Text style={styles.detailValue}>{detailFacture.modele}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Immatriculation :</Text>
+                    <Text style={styles.detailValue}>{detailFacture.immatriculation}</Text>
+                  </View>
+                </View>
+
+                {/* Détail des coûts */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailSectionTitle}>Détail des coûts</Text>
+                  <View style={styles.costRow}>
+                    <Text style={styles.costLabel}>Prestation :</Text>
+                    <Text style={styles.costValue}>{formatMontant(detailFacture.prix_intervention)} €</Text>
+                  </View>
+                  <View style={styles.costRow}>
+                    <Text style={styles.costLabel}>Pièces utilisées :</Text>
+                    <Text style={styles.costValue}>{formatMontant(detailFacture.total_pieces)} €</Text>
+                  </View>
+                  <View style={[styles.costRow, styles.costTotal]}>
+                    <Text style={styles.costTotalLabel}>Total TTC :</Text>
+                    <Text style={styles.costTotalValue}>{formatMontant(detailFacture.montant_total)} €</Text>
+                  </View>
+                </View>
+
+                {/* Pièces utilisées */}
+                {detailFacture.pieces && detailFacture.pieces.length > 0 && (
+                  <View style={styles.detailSection}>
+                    <Text style={styles.detailSectionTitle}>
+                      <Ionicons name="cube" size={14} color="#e94560" /> Pièces utilisées
+                    </Text>
+                    {detailFacture.pieces.map((p, idx) => (
+                      <View key={idx} style={styles.pieceRow}>
+                        <View style={styles.pieceInfo}>
+                          <Text style={styles.pieceName}>{p.nom}</Text>
+                          <Text style={styles.pieceRef}>{p.reference}</Text>
+                        </View>
+                        <View style={styles.pieceDetails}>
+                          <Text style={styles.pieceQty}>x{p.quantite_utilisee}</Text>
+                          <Text style={styles.piecePrice}>{p.prix_unitaire} €</Text>
+                          <Text style={styles.pieceTotal}>{p.total} €</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+          </ScrollView>
+
+          <TouchableOpacity style={styles.detailCloseButton} onPress={closeDetail}>
+            <Text style={styles.detailCloseText}>Fermer</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 
   if (loading) {
@@ -131,6 +343,7 @@ export default function FacturesScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
+      <DetailModal />
     </View>
   );
 }
@@ -179,8 +392,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 8,
   },
-  downloadButton: {
-    padding: 8,
+  detailButton: {
+    padding: 5,
   },
   cardContent: {
     gap: 10,
@@ -209,6 +422,216 @@ const styles = StyleSheet.create({
   },
   statusUnpaid: {
     color: '#f44336',
+  },
+  payButton: {
+    flexDirection: 'row',
+    backgroundColor: '#e94560',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 12,
+  },
+  payButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: '#1e1e1e',
+    borderRadius: 12,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    color: '#e94560',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  modalIcon: {
+    marginBottom: 16,
+  },
+  modalText: {
+    color: '#f5f5f5',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  modalTextBold: {
+    fontWeight: 'bold',
+    color: '#e94560',
+  },
+  modalAmount: {
+    color: '#f5f5f5',
+    fontSize: 14,
+    marginBottom: 20,
+  },
+  modalAmountBold: {
+    fontWeight: 'bold',
+    color: '#e94560',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelButton: {
+    backgroundColor: '#f44336',
+    borderRadius: 8,
+    padding: 10,
+    paddingHorizontal: 20,
+  },
+  modalCancelText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modalConfirmButton: {
+    backgroundColor: '#4caf50',
+    borderRadius: 8,
+    padding: 10,
+    paddingHorizontal: 20,
+  },
+  modalConfirmText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  detailModalContent: {
+    backgroundColor: '#1e1e1e',
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxHeight: '85%',
+  },
+  detailModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  detailModalTitle: {
+    color: '#e94560',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  detailSection: {
+    marginBottom: 20,
+  },
+  detailSectionTitle: {
+    color: '#e94560',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  detailLabel: {
+    width: 100,
+    color: '#aaaaaa',
+    fontSize: 13,
+  },
+  detailValue: {
+    flex: 1,
+    color: '#f5f5f5',
+    fontSize: 13,
+  },
+  costRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  costTotal: {
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+    marginTop: 6,
+    paddingTop: 10,
+  },
+  costLabel: {
+    color: '#aaaaaa',
+    fontSize: 14,
+  },
+  costValue: {
+    color: '#f5f5f5',
+    fontSize: 14,
+  },
+  costTotalLabel: {
+    color: '#e94560',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  costTotalValue: {
+    color: '#e94560',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  pieceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  pieceInfo: {
+    flex: 2,
+  },
+  pieceName: {
+    color: '#f5f5f5',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  pieceRef: {
+    color: '#aaaaaa',
+    fontSize: 11,
+  },
+  pieceDetails: {
+    flex: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  pieceQty: {
+    color: '#f5f5f5',
+    fontSize: 13,
+  },
+  piecePrice: {
+    color: '#f5f5f5',
+    fontSize: 13,
+  },
+  pieceTotal: {
+    color: '#e94560',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  detailCloseButton: {
+    backgroundColor: '#e94560',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  detailCloseText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   emptyContainer: {
     flex: 1,

@@ -10,7 +10,8 @@ import {
     faUsers, 
     faOilCan, 
     faCog,
-    faSignOutAlt
+    faSignOutAlt,
+    faHistory,
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../services/api';
 
@@ -114,6 +115,10 @@ function Sidebar() {
                     <Link to="/admin/techniciens" className={isActive('/admin/techniciens')}>
                         <FontAwesomeIcon icon={faUsers} />
                         <span>Techniciens</span>
+                    </Link>
+                    <Link to="/admin/activites" className={isActive('/admin/activites')}>
+                        <FontAwesomeIcon icon={faHistory} />
+                        <span>Activités</span>
                     </Link>
                     <Link to="/admin/vidanges" className={isActive('/admin/vidanges')}>
                         <FontAwesomeIcon icon={faOilCan} />

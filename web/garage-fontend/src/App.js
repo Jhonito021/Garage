@@ -30,6 +30,7 @@ import Clients from './pages/admin/Clients';
 import Vidanges from './pages/admin/Vidanges';
 import Parametres from './pages/admin/Parametres';
 import Techniciens from './pages/admin/Techniciens';
+import Activites from './pages/admin/Activites';
 
 // Pages technicien
 import TechnicienLogin from './pages/technicien/TechnicienLogin';
@@ -67,6 +68,7 @@ function App() {
                 <Route path="/admin/vidanges" element={<AdminRoute><Vidanges /></AdminRoute>} />
                 <Route path="/admin/parametres" element={<AdminRoute><Parametres /></AdminRoute>} />
                 <Route path="/admin/techniciens" element={<AdminRoute><Techniciens /></AdminRoute>} />
+                <Route path="/admin/activites" element={<AdminRoute><Activites /></AdminRoute>} />
 
                 {/* Routes technicien (technicien uniquement) */}
                 <Route path="/technicien/login" element={<TechnicienLogin />} />
