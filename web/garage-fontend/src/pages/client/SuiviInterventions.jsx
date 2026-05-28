@@ -1,3 +1,4 @@
+// frontend/src/pages/client/SuiviInterventions.jsx
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -15,7 +16,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../../services/api';
 
-function SuiviIntervention() {
+function SuiviInterventions() {
   const [interventions, setInterventions] = useState([]);
   const [filteredInterventions, setFilteredInterventions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,12 +26,18 @@ function SuiviIntervention() {
   useEffect(() => {
     const fetchInterventions = async () => {
       try {
-        const res = await api.get('/suivi/interventions');
+        // CORRECTION: Utiliser la bonne route API
+        const res = await api.get('/interventions/client');
         console.log('Interventions reçues:', res.data);
         setInterventions(res.data);
         setFilteredInterventions(res.data);
       } catch (err) {
         console.error('Erreur:', err);
+        if (err.response?.status === 401) {
+          console.log('Non authentifié - Redirection vers login');
+          // Optionnel: rediriger vers login
+          // window.location.href = '/login';
+        }
       } finally {
         setLoading(false);
       }
@@ -46,7 +53,7 @@ function SuiviIntervention() {
       if (filter === 'en_cours') {
         result = result.filter(i => i.statut === 'en_cours');
       } else if (filter === 'en_attente') {
-        result = result.filter(i => i.statut === 'prévue' || !i.statut);
+        result = result.filter(i => i.statut === 'prévue');
       } else if (filter === 'terminee') {
         result = result.filter(i => i.statut === 'terminée');
       }
@@ -55,9 +62,9 @@ function SuiviIntervention() {
     // Filtre par recherche
     if (searchTerm) {
       result = result.filter(i => 
-        i.immatriculation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        i.marque?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        i.modele?.toLowerCase().includes(searchTerm.toLowerCase())
+        (i.immatriculation?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (i.marque?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (i.modele?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       );
     }
     
@@ -107,7 +114,7 @@ function SuiviIntervention() {
     const total = interventions.length;
     const enCours = interventions.filter(i => i.statut === 'en_cours').length;
     const terminees = interventions.filter(i => i.statut === 'terminée').length;
-    const enAttente = interventions.filter(i => i.statut === 'prévue' || !i.statut).length;
+    const enAttente = interventions.filter(i => i.statut === 'prévue').length;
     return { total, enCours, terminees, enAttente };
   };
 
@@ -176,7 +183,6 @@ function SuiviIntervention() {
             <button 
               onClick={() => setFilter('all')}
               className={filter === 'all' ? 'btn-primary' : 'btn-outline'}
-              style={{ padding: '8px 15px' }}
             >
               <FontAwesomeIcon icon={faFilter} style={{ marginRight: '5px' }} />
               Toutes
@@ -184,7 +190,6 @@ function SuiviIntervention() {
             <button 
               onClick={() => setFilter('en_cours')}
               className={filter === 'en_cours' ? 'btn-primary' : 'btn-outline'}
-              style={{ padding: '8px 15px' }}
             >
               <FontAwesomeIcon icon={faPlayCircle} style={{ marginRight: '5px' }} />
               En cours
@@ -192,7 +197,6 @@ function SuiviIntervention() {
             <button 
               onClick={() => setFilter('en_attente')}
               className={filter === 'en_attente' ? 'btn-primary' : 'btn-outline'}
-              style={{ padding: '8px 15px' }}
             >
               <FontAwesomeIcon icon={faHourglassHalf} style={{ marginRight: '5px' }} />
               En attente
@@ -200,7 +204,6 @@ function SuiviIntervention() {
             <button 
               onClick={() => setFilter('terminee')}
               className={filter === 'terminee' ? 'btn-primary' : 'btn-outline'}
-              style={{ padding: '8px 15px' }}
             >
               <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '5px' }} />
               Terminées
@@ -226,6 +229,9 @@ function SuiviIntervention() {
         <div className="card text-center">
           <FontAwesomeIcon icon={faChartLine} style={{ fontSize: '3rem', color: 'var(--text-light)', marginBottom: '15px' }} />
           <p>Aucune intervention trouvée</p>
+          {interventions.length === 0 && (
+            <p className="text-light">Vous n'avez pas encore d'interventions</p>
+          )}
         </div>
       ) : (
         <div className="mt-20">
@@ -248,7 +254,7 @@ function SuiviIntervention() {
                   
                   <h3>
                     <FontAwesomeIcon icon={faCar} style={{ marginRight: '10px' }} />
-                    {i.marque} {i.modele} - {i.immatriculation}
+                    {i.marque || '?'} {i.modele || '?'} - {i.immatriculation || '?'}
                   </h3>
                   
                   <p>
@@ -274,13 +280,6 @@ function SuiviIntervention() {
                       Durée totale: {i.duree_totale} minutes
                     </p>
                   )}
-                  
-                  {i.technicien_nom && (
-                    <p className="text-light">
-                      <FontAwesomeIcon icon={faUser} style={{ marginRight: '8px' }} />
-                      Technicien: {i.technicien_prenom} {i.technicien_nom}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -291,4 +290,4 @@ function SuiviIntervention() {
   );
 }
 
-export default SuiviIntervention;
+export default SuiviInterventions;

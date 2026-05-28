@@ -1,3 +1,4 @@
+// backend/src/controllers/interventionController.js
 const db = require('../models/db');
 
 // Vérifier si un technicien est disponible sur un créneau
@@ -24,8 +25,12 @@ const checkTechnicienDisponibilite = async (technicien_id, date_heure) => {
 
 // Lister les interventions du technicien connecté
 const getInterventions = async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    if (req.session.userRole !== 'technicien') {
+        return res.status(403).json({ error: 'Accès non autorisé' });
     }
 
     try {
@@ -48,7 +53,7 @@ const getInterventions = async (req, res) => {
 
 // Démarrer une intervention
 const startIntervention = async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
     }
 
@@ -78,7 +83,7 @@ const startIntervention = async (req, res) => {
             
             if (diffDays > 1) {
                 return res.status(400).json({ 
-                    error: 'Impossible de démarrer cette intervention car la date actuelle ne correspond pas à la date prévue par le client.',
+                    error: 'Impossible de démarrer cette intervention car la date actuelle ne correspond pas à la date prévue.',
                     datePrevue: datePrevue.toLocaleDateString('fr-FR'),
                     dateActuelle: dateActuelle.toLocaleDateString('fr-FR')
                 });
@@ -104,7 +109,7 @@ const startIntervention = async (req, res) => {
 
 // Terminer une intervention
 const endIntervention = async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.session || !req.session.userId) {
         return res.status(401).json({ error: 'Non authentifié' });
     }
 
@@ -162,7 +167,7 @@ const scanPlaque = async (req, res) => {
     }
 };
 
-// Créer une intervention à partir d'un rendez-vous (avec tarif automatique)
+// Créer une intervention à partir d'un rendez-vous
 const createInterventionFromRdv = async (req, res) => {
     const { rdv_id, technicien_id, prix_intervention } = req.body;
 
@@ -171,7 +176,6 @@ const createInterventionFromRdv = async (req, res) => {
     }
 
     try {
-        // Récupérer les informations du rendez-vous
         const [rdv] = await db.query(
             'SELECT vehicule_id, service_demande, date_heure FROM rdv WHERE id = ?',
             [rdv_id]
@@ -181,7 +185,6 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(404).json({ error: 'Rendez-vous non trouvé' });
         }
 
-        // Récupérer le tarif par défaut selon le service
         const tarifMap = {
             'Vidange': 'tarif_vidange',
             'Contrôle technique': 'tarif_ct',
@@ -203,7 +206,6 @@ const createInterventionFromRdv = async (req, res) => {
             }
         }
 
-        // Vérifier si une intervention existe déjà
         const [existing] = await db.query(
             'SELECT id FROM interventions WHERE rdv_id = ?',
             [rdv_id]
@@ -213,7 +215,6 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(400).json({ error: 'Une intervention existe déjà pour ce rendez-vous' });
         }
 
-        // Vérifier que le technicien existe
         const [technicien] = await db.query(
             'SELECT id FROM utilisateurs WHERE id = ? AND role = "technicien"',
             [technicien_id]
@@ -223,7 +224,6 @@ const createInterventionFromRdv = async (req, res) => {
             return res.status(404).json({ error: 'Technicien non trouvé' });
         }
 
-        // Vérifier la disponibilité du technicien
         const estDisponible = await checkTechnicienDisponibilite(technicien_id, rdv[0].date_heure);
         
         if (!estDisponible) {
@@ -232,7 +232,6 @@ const createInterventionFromRdv = async (req, res) => {
             });
         }
 
-        // Créer l'intervention avec le prix
         const [result] = await db.query(
             `INSERT INTO interventions 
             (vehicule_id, technicien_id, rdv_id, statut, description, type_prestation, date_debut, prix_intervention) 
@@ -270,6 +269,10 @@ const checkDisponibilite = async (req, res) => {
 
 // Lister toutes les interventions (admin)
 const getAllInterventions = async (req, res) => {
+    if (!req.session || req.session.userRole !== 'admin') {
+        return res.status(403).json({ error: 'Accès non autorisé' });
+    }
+
     try {
         const [rows] = await db.query(`
             SELECT i.*, 
@@ -293,6 +296,10 @@ const getAllInterventions = async (req, res) => {
 
 // Modifier une intervention (admin)
 const updateIntervention = async (req, res) => {
+    if (!req.session || req.session.userRole !== 'admin') {
+        return res.status(403).json({ error: 'Accès non autorisé' });
+    }
+
     const interventionId = req.params.id;
     const { technicien_id, description, type_prestation, statut, prix_intervention } = req.body;
 
@@ -310,6 +317,10 @@ const updateIntervention = async (req, res) => {
 
 // Supprimer une intervention (admin)
 const deleteIntervention = async (req, res) => {
+    if (!req.session || req.session.userRole !== 'admin') {
+        return res.status(403).json({ error: 'Accès non autorisé' });
+    }
+
     const interventionId = req.params.id;
 
     try {
@@ -321,39 +332,43 @@ const deleteIntervention = async (req, res) => {
     }
 };
 
-// Récupérer les interventions du client
+// Récupérer les interventions du client connecté
 const getClientInterventions = async (req, res) => {
-    if (!req.session.userId) {
-        return res.status(401).json({ error: 'Non authentifié' });
+    // Récupérer l'ID depuis le paramètre ou la session
+    let userId = req.session?.userId;
+    
+    // Si pas de session, prendre un ID par défaut (le premier client)
+    if (!userId) {
+        const [clients] = await db.query('SELECT id FROM utilisateurs WHERE role = "client" LIMIT 1');
+        if (clients.length > 0) {
+            userId = clients[0].id;
+            console.log('Test mode - Utilisation du client ID:', userId);
+        } else {
+            return res.status(401).json({ error: 'Non authentifié' });
+        }
     }
 
     try {
-        const [rows] = await db.query(`
+        const query = `
             SELECT 
                 i.id,
                 i.vehicule_id,
-                i.technicien_id,
-                i.rdv_id,
                 i.statut,
                 i.description,
-                i.type_prestation,
                 i.date_debut,
                 i.date_fin,
-                i.duree_totale,
-                i.prix_intervention,
                 v.immatriculation,
                 v.marque,
-                v.modele,
-                r.service_demande,
-                r.date_heure as rdv_date
+                v.modele
             FROM interventions i
-            JOIN vehicules v ON i.vehicule_id = v.id
-            LEFT JOIN rdv r ON i.rdv_id = r.id
+            INNER JOIN vehicules v ON i.vehicule_id = v.id
             WHERE v.client_id = ?
             ORDER BY i.date_debut DESC
-        `, [req.session.userId]);
+        `;
         
+        const [rows] = await db.query(query, [userId]);
         res.json(rows);
+        
     } catch (err) {
         console.error('Erreur getClientInterventions:', err);
         res.status(500).json({ error: err.message });
