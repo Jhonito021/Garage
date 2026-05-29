@@ -20,7 +20,7 @@ app.set('io', io);
 
 // Session middleware
 app.use(session({
-    secret: 'mon_secret_pour_les_sessions_2024',
+    secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
     saveUninitialized: false,
     cookie: { 

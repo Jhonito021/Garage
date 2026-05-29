@@ -1,9 +1,7 @@
 // frontend/src/services/dijkstra.js
 import { fetchRoadsForDijkstra } from './overpassService';
 
-/**
- * Graphe pour l'algorithme de Dijkstra
- */
+//Graphe pour l'algorithme de Dijkstra
 class Graph {
     constructor() {
         this.nodes = new Map();
