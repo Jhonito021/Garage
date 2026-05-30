@@ -151,7 +151,7 @@ function AdminDashboard() {
             <div className="stat-card-icon">
               <FontAwesomeIcon icon={faEuroSign} />
             </div>
-            <div className="stat-card-value">{formatMontant(stats.ca_mois)} €</div>
+            <div className="stat-card-value">{formatMontant(stats.ca_mois)} Ar</div>
             <div className="stat-card-label">Chiffre d'affaires du mois</div>
             <div className="stat-card-trend">
               <FontAwesomeIcon icon={faChartLine} style={{ marginRight: '5px' }} />
@@ -211,7 +211,7 @@ function AdminDashboard() {
                 <YAxis stroke="#aaaaaa" tickFormatter={(value) => `${value / 1000}k`} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#1e1e1e', border: '1px solid #333', borderRadius: '8px' }}
-                  formatter={(value) => [`${formatMontant(value)} €`, 'CA']}
+                  formatter={(value) => [`${formatMontant(value)} Ar`, 'CA']}
                 />
                 <Legend />
                 <Line type="monotone" dataKey="montant" stroke="#e94560" strokeWidth={2} dot={{ fill: '#e94560', r: 4 }} />

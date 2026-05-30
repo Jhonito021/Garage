@@ -47,7 +47,7 @@ function PaymentForm({ factureId, montant, onSuccess, onCancel }) {
             <div className="flex gap-10" style={{ marginTop: '20px' }}>
                 <button type="button" onClick={onCancel} className="btn-outline">Annuler</button>
                 <button type="submit" disabled={!stripe || loading}>
-                    {loading ? 'Paiement en cours...' : `Payer ${montant} €`}
+                    {loading ? 'Paiement en cours...' : `Payer ${montant} Ar`}
                 </button>
             </div>
         </form>

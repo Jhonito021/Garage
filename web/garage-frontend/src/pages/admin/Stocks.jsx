@@ -140,7 +140,7 @@ function Stocks() {
                             <label htmlFor="reference">Référence</label><input type="text" name="reference" placeholder="Référence" value={formData.reference} onChange={handleChange} required />
                             <label htmlFor="quantite_stock">Quantié stock</label><input type="number" name="quantite_stock" placeholder="Quantité en stock" value={formData.quantite_stock} onChange={handleChange} />
                             <label htmlFor="seuil_alerte">Seuil alerte</label><input type="number" name="seuil_alerte" placeholder="Seuil d'alerte" value={formData.seuil_alerte} onChange={handleChange} />
-                            <label htmlFor="prix_unitaire">Prix unitaire</label><input type="number" step="0.01" name="prix_unitaire" placeholder="Prix unitaire (€)" value={formData.prix_unitaire} onChange={handleChange} required />
+                            <label htmlFor="prix_unitaire">Prix unitaire</label><input type="number" step="0.01" name="prix_unitaire" placeholder="Prix unitaire (Ar)" value={formData.prix_unitaire} onChange={handleChange} required />
                             <button type="submit">Enregistrer</button>
                         </form>
                     </div>
@@ -161,7 +161,7 @@ function Stocks() {
                                         <p>Référence: {p.reference}</p>
                                         <p>Quantité: {p.quantite_stock} unités</p>
                                         <p>Seuil d'alerte: {p.seuil_alerte}</p>
-                                        <p>Prix unitaire: {p.prix_unitaire} €</p>
+                                        <p>Prix unitaire: {p.prix_unitaire} Ar</p>
                                         {p.quantite_stock <= p.seuil_alerte && (
                                             <p className="text-danger">⚠️ Stock bas !</p>
                                         )}

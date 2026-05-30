@@ -266,7 +266,7 @@ function FacturesGestion() {
                     <td>{f.id}</td>
                     <td>Intervention #{f.intervention_id}</td>
                     <td>{new Date(f.date_emission).toLocaleDateString('fr-FR')}</td>
-                    <td>{formatMontant(f.montant_total)} €</td>
+                    <td>{formatMontant(f.montant_total)} Ar</td>
                     <td>
                       <span className={`badge ${f.statut_paiement === 'payé' ? 'badge-success' : 'badge-danger'}`}>
                         {f.statut_paiement === 'payé' ? 'Payée' : 'Impayée'}
@@ -348,10 +348,10 @@ function FacturesGestion() {
 
                 <div className="detail-section">
                   <h4>Détail des coûts</h4>
-                  <p><strong>Prestation:</strong> {formatMontant(detailFacture.prix_intervention)} €</p>
-                  <p><strong>Pièces utilisées:</strong> {formatMontant(detailFacture.total_pieces)} €</p>
+                  <p><strong>Prestation:</strong> {formatMontant(detailFacture.prix_intervention)} Ar</p>
+                  <p><strong>Pièces utilisées:</strong> {formatMontant(detailFacture.total_pieces)} Ar</p>
                   <hr />
-                  <p><strong>Total:</strong> <span style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>{formatMontant(detailFacture.montant_total)} €</span></p>
+                  <p><strong>Total:</strong> <span style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>{formatMontant(detailFacture.montant_total)} Ar</span></p>
                 </div>
 
                 {/* Liste des pièces utilisées */}
@@ -379,8 +379,8 @@ function FacturesGestion() {
                               <td>{p.nom}</td>
                               <td>{p.reference}</td>
                               <td>{p.quantite_utilisee}</td>
-                              <td>{p.prix_unitaire} €</td>
-                              <td>{p.total} €</td>
+                              <td>{p.prix_unitaire} Ar</td>
+                              <td>{p.total} Ar</td>
                             </tr>
                           ))}
                         </tbody>

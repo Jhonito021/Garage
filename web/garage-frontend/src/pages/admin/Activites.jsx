@@ -75,7 +75,7 @@ function Activites() {
             id: `facture-${f.id}`,
             type: 'facture',
             action: f.statut_paiement === 'payé' ? 'Facture payée' : 'Facture créée',
-            description: `Facture #${f.id} - Montant: ${f.montant_total}€`,
+            description: `Facture #${f.id} - Montant: ${f.montant_total}Ar`,
             date: f.date_emission,
             icon: faFileInvoice,
             color: f.statut_paiement === 'payé' ? '#4caf50' : '#ff9800',

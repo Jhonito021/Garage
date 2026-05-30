@@ -398,7 +398,7 @@ function Planning() {
                         {/* <div className="form-group" style={{ marginBottom: '10px' }}>
                           <label style={{ fontSize: '12px', marginBottom: '5px' }}>
                             <FontAwesomeIcon icon={faEuroSign} style={{ marginRight: '5px' }} />
-                            Prix intervention (€)
+                            Prix intervention (Ar)
                           </label>
                           <input
                             type="number"
@@ -409,7 +409,7 @@ function Planning() {
                             style={{ width: '100%', padding: '8px' }}
                           />
                           <small className="text-light">
-                            Tarif par défaut: {getTarifByService(r.service_demande)} €
+                            Tarif par défaut: {getTarifByService(r.service_demande)} Ar
                           </small>
                         </div> */}
                         

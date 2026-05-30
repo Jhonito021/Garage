@@ -122,7 +122,7 @@ export default function FacturesScreen() {
         <View style={styles.infoRow}>
           <Ionicons name="cash" size={14} color="#aaaaaa" />
           <Text style={styles.infoText}>
-            Montant: <Text style={styles.amount}>{formatMontant(item.montant_total)} €</Text>
+            Montant: <Text style={styles.amount}>{formatMontant(item.montant_total)} Ar</Text>
           </Text>
         </View>
 
@@ -170,7 +170,7 @@ export default function FacturesScreen() {
               Confirmez-vous avoir payé la facture <Text style={styles.modalTextBold}>#{item.id}</Text> au garage ?
             </Text>
             <Text style={styles.modalAmount}>
-              Montant: <Text style={styles.modalAmountBold}>{formatMontant(item.montant_total)} €</Text>
+              Montant: <Text style={styles.modalAmountBold}>{formatMontant(item.montant_total)} Ar</Text>
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalCancelButton} onPress={closeConfirmation}>
@@ -271,15 +271,15 @@ export default function FacturesScreen() {
                   <Text style={styles.detailSectionTitle}>Détail des coûts</Text>
                   <View style={styles.costRow}>
                     <Text style={styles.costLabel}>Prestation :</Text>
-                    <Text style={styles.costValue}>{formatMontant(detailFacture.prix_intervention)} €</Text>
+                    <Text style={styles.costValue}>{formatMontant(detailFacture.prix_intervention)} Ar</Text>
                   </View>
                   <View style={styles.costRow}>
                     <Text style={styles.costLabel}>Pièces utilisées :</Text>
-                    <Text style={styles.costValue}>{formatMontant(detailFacture.total_pieces)} €</Text>
+                    <Text style={styles.costValue}>{formatMontant(detailFacture.total_pieces)} Ar</Text>
                   </View>
                   <View style={[styles.costRow, styles.costTotal]}>
                     <Text style={styles.costTotalLabel}>Total TTC :</Text>
-                    <Text style={styles.costTotalValue}>{formatMontant(detailFacture.montant_total)} €</Text>
+                    <Text style={styles.costTotalValue}>{formatMontant(detailFacture.montant_total)} Ar</Text>
                   </View>
                 </View>
 
@@ -297,8 +297,8 @@ export default function FacturesScreen() {
                         </View>
                         <View style={styles.pieceDetails}>
                           <Text style={styles.pieceQty}>x{p.quantite_utilisee}</Text>
-                          <Text style={styles.piecePrice}>{p.prix_unitaire} €</Text>
-                          <Text style={styles.pieceTotal}>{p.total} €</Text>
+                          <Text style={styles.piecePrice}>{p.prix_unitaire} Ar</Text>
+                          <Text style={styles.pieceTotal}>{p.total} Ar</Text>
                         </View>
                       </View>
                     ))}

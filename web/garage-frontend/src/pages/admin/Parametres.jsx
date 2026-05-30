@@ -230,11 +230,11 @@ function Parametres() {
               </tr>
             </thead>
             <tbody>
-              <tr><td>Vidange</td><td>{getTarifByService('Vidange')} €</td></tr>
-              <tr><td>Contrôle technique</td><td>{getTarifByService('Contrôle technique')} €</td></tr>
-              <tr><td>Réparation</td><td>{getTarifByService('Réparation')} €</td></tr>
-              <tr><td>Entretien courant</td><td>{getTarifByService('Entretien courant')} €</td></tr>
-              <tr><td>Pneumatiques</td><td>{getTarifByService('Pneumatiques')} €</td></tr>
+              <tr><td>Vidange</td><td>{getTarifByService('Vidange')} Ar</td></tr>
+              <tr><td>Contrôle technique</td><td>{getTarifByService('Contrôle technique')} Ar</td></tr>
+              <tr><td>Réparation</td><td>{getTarifByService('Réparation')} Ar</td></tr>
+              <tr><td>Entretien courant</td><td>{getTarifByService('Entretien courant')} Ar</td></tr>
+              <tr><td>Pneumatiques</td><td>{getTarifByService('Pneumatiques')} Ar</td></tr>
             </tbody>
           </table>
         </div>

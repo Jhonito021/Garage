@@ -178,7 +178,7 @@ function Factures() {
                   </p>
                   <p>
                     <FontAwesomeIcon icon={faEuroSign} style={{ marginRight: '8px' }} />
-                    Montant: <strong>{formatMontant(f.montant_total)} €</strong>
+                    Montant: <strong>{formatMontant(f.montant_total)} Ar</strong>
                   </p>
                   <p>
                     Statut: 
@@ -239,7 +239,7 @@ function Factures() {
                       <FontAwesomeIcon icon={faCreditCard} style={{ fontSize: '3rem', color: 'var(--secondary-color)', marginBottom: '20px' }} />
                       <p>Confirmez-vous avoir payé la facture <strong>#{f.id}</strong> au garage ?</p>
                       <p className="text-light" style={{ fontSize: '14px', marginTop: '10px' }}>
-                        Montant: <strong>{formatMontant(f.montant_total)} €</strong>
+                        Montant: <strong>{formatMontant(f.montant_total)} Ar</strong>
                       </p>
                       <div className="flex gap-10" style={{ justifyContent: 'center', marginTop: '20px' }}>
                         <button onClick={closeConfirmation} className="btn-outline">Annuler</button>
@@ -319,10 +319,10 @@ function Factures() {
                       {/* Détail des coûts */}
                       <div className="detail-section">
                         <h4>Détail des coûts</h4>
-                        <p><strong>Prestation:</strong> {formatMontant(detailFacture.prix_intervention)} €</p>
-                        <p><strong>Pièces utilisées:</strong> {formatMontant(detailFacture.total_pieces)} €</p>
+                        <p><strong>Prestation:</strong> {formatMontant(detailFacture.prix_intervention)} Ar</p>
+                        <p><strong>Pièces utilisées:</strong> {formatMontant(detailFacture.total_pieces)} Ar</p>
                         <hr />
-                        <p><strong>Total:</strong> <span style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>{formatMontant(detailFacture.montant_total)} €</span></p>
+                        <p><strong>Total:</strong> <span style={{ color: 'var(--secondary-color)', fontWeight: 'bold' }}>{formatMontant(detailFacture.montant_total)} Ar</span></p>
                       </div>
 
                       {/* Liste des pièces utilisées */}
@@ -350,8 +350,8 @@ function Factures() {
                                     <td>{p.nom}</td>
                                     <td>{p.reference}</td>
                                     <td>{p.quantite_utilisee}</td>
-                                    <td>{formatMontant(p.prix_unitaire)} €</td>
-                                    <td>{formatMontant(p.total)} €</td>
+                                    <td>{formatMontant(p.prix_unitaire)} Ar</td>
+                                    <td>{formatMontant(p.total)} Ar</td>
                                   </tr>
                                 ))}
                               </tbody>

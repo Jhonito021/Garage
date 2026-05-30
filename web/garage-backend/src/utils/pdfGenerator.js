@@ -79,14 +79,14 @@ const generateFacturePDF = async (facture, pieces = []) => {
                 doc.text(piece.nom.substring(0, 30), 50, y);
                 doc.text(piece.reference, 200, y);
                 doc.text(piece.quantite_utilisee.toString(), 350, y);
-                doc.text(`${piece.prix_unitaire.toFixed(2)} €`, 400, y);
-                doc.text(`${total.toFixed(2)} €`, 480, y);
+                doc.text(`${piece.prix_unitaire.toFixed(2)} Ar`, 400, y);
+                doc.text(`${total.toFixed(2)} Ar`, 480, y);
                 doc.moveDown(0.5);
             });
             
             doc.moveDown(0.5);
             doc.fontSize(10).font('Helvetica-Bold');
-            doc.text(`Total pièces: ${totalPieces.toFixed(2)} €`, 400, doc.y);
+            doc.text(`Total pièces: ${totalPieces.toFixed(2)} Ar`, 400, doc.y);
             doc.moveDown(1);
         }
         
@@ -99,12 +99,12 @@ const generateFacturePDF = async (facture, pieces = []) => {
         doc.text('Récapitulatif :', 50, doc.y);
         doc.moveDown(0.5);
         doc.fontSize(10).font('Helvetica');
-        doc.text(`Prestation: ${prixIntervention.toFixed(2)} €`, 50, doc.y);
-        doc.text(`Pièces: ${totalPiecesCalculated.toFixed(2)} €`, 50, doc.y);
+        doc.text(`Prestation: ${prixIntervention.toFixed(2)} Ar`, 50, doc.y);
+        doc.text(`Pièces: ${totalPiecesCalculated.toFixed(2)} Ar`, 50, doc.y);
         doc.moveDown(0.5);
         
         doc.fontSize(14).font('Helvetica-Bold');
-        doc.text(`TOTAL TTC: ${montantTotal.toFixed(2)} €`, 50, doc.y);
+        doc.text(`TOTAL TTC: ${montantTotal.toFixed(2)} Ar`, 50, doc.y);
         doc.moveDown(2);
         
         // Pied de page

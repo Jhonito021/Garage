@@ -142,7 +142,7 @@ function Devis() {
                                 type="number"
                                 step="0.01"
                                 name="montant"
-                                placeholder="Montant (€)"
+                                placeholder="Montant (Ar)"
                                 value={formData.montant}
                                 onChange={handleChange}
                                 required
@@ -164,7 +164,7 @@ function Devis() {
                                     <div>
                                         <h3>Devis #{d.id}</h3>
                                         <p>Date: {new Date(d.date_emission).toLocaleDateString('fr-FR')}</p>
-                                        <p>Montant: {d.montant} €</p>
+                                        <p>Montant: {d.montant} Ar</p>
                                         <p>Véhicule: {d.marque} {d.modele} - {d.immatriculation}</p>
                                         <p>
                                             Statut: 
