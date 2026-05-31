@@ -32,6 +32,9 @@ function TechnicienLogin() {
                 } else if (user.role === 'admin') {
                     localStorage.setItem('user', JSON.stringify(user));
                     navigate('/admin');
+                } else if (user.role === 'depanneur') {
+                    localStorage.setItem('user', JSON.stringify(user));
+                    navigate('/depanneur');
                 } else {
                     setError('Accès réservé aux techniciens et administrateurs');
                 }

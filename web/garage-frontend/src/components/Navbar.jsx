@@ -61,7 +61,7 @@ function Navbar() {
             <div className="navbar-brand">
                 <Link to="/">
                     <FontAwesomeIcon icon={faCar} style={{ marginRight: '10px' }} />
-                    Garage Pro
+                    TwentyOne Garage
                 </Link>
             </div>
             
@@ -114,7 +114,7 @@ function Navbar() {
                         fontWeight: 'bold'
                     }}>
                         <FontAwesomeIcon icon={faTruck} style={{ marginRight: '5px' }} />
-                        Dépannage ⚡
+                        Dépannage 
                     </Link>
                 </div>
             )}

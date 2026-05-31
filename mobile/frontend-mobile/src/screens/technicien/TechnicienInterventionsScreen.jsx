@@ -1,4 +1,4 @@
-// frontend/screens/technicien/TechnicienInterventionsScreen.jsx
+// frontend-mobile/src/screens/technicien/TechnicienInterventionsScreen.jsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -14,40 +14,57 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../services/api';
 
-export default function TechnicienInterventionsScreen({ navigation, route }) {
+export default function TechnicienInterventionsScreen({ navigation }) {
   const [interventions, setInterventions] = useState([]);
+  const [filteredInterventions, setFilteredInterventions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all');
-  const [userId, setUserId] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    terminees: 0,
+    en_cours: 0,
+    a_venir: 0
+  });
 
   const fetchInterventions = async () => {
     try {
-      // Récupérer l'utilisateur
-      let user_id = route.params?.user_id;
-      
-      if (!user_id) {
-        const userData = await AsyncStorage.getItem('user');
-        if (userData) {
-          const user = JSON.parse(userData);
-          user_id = user.id;
-        }
-      }
-      
-      if (!user_id) {
-        Alert.alert('Erreur', 'Utilisateur non identifié');
-        navigation.goBack();
+      const userData = await AsyncStorage.getItem('user');
+      if (!userData) {
+        console.log('Aucun utilisateur connecté');
+        setLoading(false);
         return;
       }
       
-      setUserId(user_id);
-      console.log('Fetching interventions for user_id:', user_id);
+      const user = JSON.parse(userData);
+      console.log('Technicien connecté:', user.id);
       
-      // Appel API avec user_id
-      const response = await api.get(`/interventions?user_id=${user_id}`);
-      console.log('API Response:', response);
+      // Appel API comme dans la version web
+      const response = await api.get(`/interventions?user_id=${user.id}`);
+      console.log('Réponse API:', response);
       
-      setInterventions(response.data.data || []);
+      let data = [];
+      if (response.data && response.data.data) {
+        data = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        data = response.data;
+      }
+      
+      setInterventions(data);
+      applyFilter(data, filter);
+      
+      // Calculer les statistiques
+      const terminees = data.filter(i => i.statut === 'terminee').length;
+      const enCours = data.filter(i => i.statut === 'en_cours').length;
+      const aVenir = data.filter(i => i.statut === 'en_attente' || i.statut === 'acceptee').length;
+      
+      setStats({
+        total: data.length,
+        terminees,
+        en_cours: enCours,
+        a_venir: aVenir
+      });
+      
     } catch (error) {
       console.error('Erreur fetchInterventions:', error);
       Alert.alert('Erreur', 'Impossible de charger les interventions');
@@ -57,21 +74,29 @@ export default function TechnicienInterventionsScreen({ navigation, route }) {
     }
   };
 
+  const applyFilter = (data, selectedFilter) => {
+    if (selectedFilter === 'all') {
+      setFilteredInterventions(data);
+    } else if (selectedFilter === 'en_cours') {
+      setFilteredInterventions(data.filter(i => i.statut === 'en_cours'));
+    } else if (selectedFilter === 'en_attente') {
+      setFilteredInterventions(data.filter(i => i.statut === 'en_attente' || i.statut === 'acceptee'));
+    } else if (selectedFilter === 'terminee') {
+      setFilteredInterventions(data.filter(i => i.statut === 'terminee'));
+    }
+  };
+
   useEffect(() => {
     fetchInterventions();
   }, []);
 
+  useEffect(() => {
+    applyFilter(interventions, filter);
+  }, [filter, interventions]);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchInterventions();
-  };
-
-  const getFilteredInterventions = () => {
-    if (filter === 'all') return interventions;
-    if (filter === 'en_cours') return interventions.filter(i => i.statut === 'en_cours');
-    if (filter === 'terminee') return interventions.filter(i => i.statut === 'terminee');
-    if (filter === 'a_venir') return interventions.filter(i => i.statut === 'en_attente' || i.statut === 'acceptee');
-    return interventions;
   };
 
   const handleStartIntervention = async (id) => {
@@ -84,7 +109,9 @@ export default function TechnicienInterventionsScreen({ navigation, route }) {
           text: 'Démarrer',
           onPress: async () => {
             try {
-              await api.put(`/interventions/${id}/demarrer?user_id=${userId}`);
+              const userData = await AsyncStorage.getItem('user');
+              const user = JSON.parse(userData);
+              await api.put(`/interventions/${id}/demarrer?user_id=${user.id}`);
               fetchInterventions();
               Alert.alert('Succès', 'Intervention démarrée');
             } catch (err) {
@@ -106,7 +133,9 @@ export default function TechnicienInterventionsScreen({ navigation, route }) {
           text: 'Terminer',
           onPress: async () => {
             try {
-              await api.put(`/interventions/${id}/terminer?user_id=${userId}`);
+              const userData = await AsyncStorage.getItem('user');
+              const user = JSON.parse(userData);
+              await api.put(`/interventions/${id}/terminer?user_id=${user.id}`);
               fetchInterventions();
               Alert.alert('Succès', 'Intervention terminée');
             } catch (err) {
@@ -120,9 +149,12 @@ export default function TechnicienInterventionsScreen({ navigation, route }) {
 
   const getStatusIcon = (statut) => {
     switch(statut) {
-      case 'terminee': return <Ionicons name="checkmark-circle" size={20} color="#4caf50" />;
-      case 'en_cours': return <Ionicons name="play-circle" size={20} color="#ff9800" />;
-      default: return <Ionicons name="time" size={20} color="#2196f3" />;
+      case 'terminee': 
+        return <Ionicons name="checkmark-circle" size={20} color="#4caf50" />;
+      case 'en_cours': 
+        return <Ionicons name="play-circle" size={20} color="#ff9800" />;
+      default: 
+        return <Ionicons name="time" size={20} color="#2196f3" />;
     }
   };
 
@@ -134,74 +166,45 @@ export default function TechnicienInterventionsScreen({ navigation, route }) {
     }
   };
 
-  const renderIntervention = ({ item }) => (
-    <View style={styles.interventionCard}>
-      <View style={styles.interventionHeader}>
-        <View style={styles.titleContainer}>
-          {getStatusIcon(item.statut)}
-          <Text style={styles.interventionTitle}>{item.titre || 'Intervention'}</Text>
-        </View>
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: item.statut === 'terminee' ? '#4caf50' : 
-                           item.statut === 'en_cours' ? '#ff9800' : '#2196f3' }
-        ]}>
-          <Text style={styles.statusText}>{getStatusText(item.statut)}</Text>
-        </View>
-      </View>
-      
-      <Text style={styles.interventionDesc} numberOfLines={2}>
-        {item.description || 'Aucune description'}
-      </Text>
-      
-      <View style={styles.interventionFooter}>
-        <View style={styles.footerItem}>
-          <Ionicons name="car" size={14} color="#e94560" />
-          <Text style={styles.footerText}>
-            {item.marque} {item.modele || 'Véhicule'}
-          </Text>
-        </View>
-        <View style={styles.footerItem}>
-          <Ionicons name="calendar" size={14} color="#e94560" />
-          <Text style={styles.footerText}>
-            {new Date(item.date_creation).toLocaleDateString('fr-FR')}
-          </Text>
-        </View>
-      </View>
-      
-      {item.statut === 'en_attente' && (
-        <TouchableOpacity 
-          style={styles.actionButton}
-          onPress={() => handleStartIntervention(item.id)}
-        >
-          <Text style={styles.actionButtonText}>Démarrer l'intervention</Text>
-        </TouchableOpacity>
-      )}
-      
-      {item.statut === 'en_cours' && (
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.completeButton]}
-          onPress={() => handleCompleteIntervention(item.id)}
-        >
-          <Text style={styles.actionButtonText}>Terminer l'intervention</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+  const getStatusColor = (statut) => {
+    switch(statut) {
+      case 'terminee': return '#4caf50';
+      case 'en_cours': return '#ff9800';
+      default: return '#2196f3';
+    }
+  };
 
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color="#e94560" />
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <Text style={styles.loadingText}>Chargement des interventions...</Text>
       </View>
     );
   }
 
-  const filteredInterventions = getFilteredInterventions();
-
   return (
     <View style={styles.container}>
+      {/* Cartes statistiques */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{stats.total}</Text>
+          <Text style={styles.statLabel}>Total</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={[styles.statValue, { color: '#ff9800' }]}>{stats.en_cours}</Text>
+          <Text style={styles.statLabel}>En cours</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={[styles.statValue, { color: '#2196f3' }]}>{stats.a_venir}</Text>
+          <Text style={styles.statLabel}>À venir</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={[styles.statValue, { color: '#4caf50' }]}>{stats.terminees}</Text>
+          <Text style={styles.statLabel}>Terminées</Text>
+        </View>
+      </View>
+
       {/* Filtres */}
       <View style={styles.filterContainer}>
         <TouchableOpacity
@@ -213,10 +216,10 @@ export default function TechnicienInterventionsScreen({ navigation, route }) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterButton, filter === 'a_venir' && styles.filterActive]}
-          onPress={() => setFilter('a_venir')}
+          style={[styles.filterButton, filter === 'en_attente' && styles.filterActive]}
+          onPress={() => setFilter('en_attente')}
         >
-          <Text style={[styles.filterText, filter === 'a_venir' && styles.filterTextActive]}>
+          <Text style={[styles.filterText, filter === 'en_attente' && styles.filterTextActive]}>
             À venir
           </Text>
         </TouchableOpacity>
@@ -241,13 +244,66 @@ export default function TechnicienInterventionsScreen({ navigation, route }) {
       <FlatList
         data={filteredInterventions}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderIntervention}
+        renderItem={({ item }) => (
+          <View style={[styles.interventionCard, { borderLeftColor: getStatusColor(item.statut), borderLeftWidth: 4 }]}>
+            <View style={styles.interventionHeader}>
+              <View style={styles.titleContainer}>
+                {getStatusIcon(item.statut)}
+                <Text style={styles.interventionTitle}>{item.titre || 'Intervention'}</Text>
+              </View>
+              <View style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(item.statut) }
+              ]}>
+                <Text style={styles.statusText}>{getStatusText(item.statut)}</Text>
+              </View>
+            </View>
+            
+            <Text style={styles.interventionDesc} numberOfLines={2}>
+              {item.description || 'Aucune description'}
+            </Text>
+            
+            <View style={styles.interventionFooter}>
+              <View style={styles.footerItem}>
+                <Ionicons name="car" size={14} color="#e94560" />
+                <Text style={styles.footerText}>
+                  {item.marque} {item.modele || 'Véhicule'}
+                </Text>
+              </View>
+              <View style={styles.footerItem}>
+                <Ionicons name="calendar" size={14} color="#e94560" />
+                <Text style={styles.footerText}>
+                  {new Date(item.date_creation).toLocaleDateString('fr-FR')}
+                </Text>
+              </View>
+            </View>
+            
+            {item.statut === 'en_attente' && (
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleStartIntervention(item.id)}
+              >
+                <Text style={styles.actionButtonText}>Démarrer l'intervention</Text>
+              </TouchableOpacity>
+            )}
+            
+            {item.statut === 'en_cours' && (
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.completeButton]}
+                onPress={() => handleCompleteIntervention(item.id)}
+              >
+                <Text style={styles.actionButtonText}>Terminer l'intervention</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="construct" size={50} color="#aaaaaa" />
             <Text style={styles.emptyText}>Aucune intervention</Text>
+            <Text style={styles.emptySubText}>Les interventions apparaîtront ici</Text>
           </View>
         }
       />
@@ -269,10 +325,35 @@ const styles = StyleSheet.create({
     color: '#aaaaaa',
     marginTop: 10,
   },
+  statsContainer: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    marginTop: 10,
+    paddingHorizontal: 15,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#1e1e1e',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#e94560',
+  },
+  statLabel: {
+    fontSize: 11,
+    color: '#aaaaaa',
+    marginTop: 4,
+  },
   filterContainer: {
     flexDirection: 'row',
     padding: 15,
     gap: 10,
+    flexWrap: 'wrap',
   },
   filterButton: {
     paddingHorizontal: 15,
@@ -367,7 +448,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: '#aaaaaa',
-    fontSize: 14,
-    marginTop: 10,
+    fontSize: 16,
+    marginTop: 15,
+  },
+  emptySubText: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 5,
   },
 });

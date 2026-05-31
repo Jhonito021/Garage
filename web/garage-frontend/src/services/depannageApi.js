@@ -1,76 +1,92 @@
 // frontend/src/services/depannageApi.js
 import api from './api';
-import { getCurrentPosition } from './geolocation';
 
-export const demanderDepannage = async () => {
+// ==================== CLIENT ====================
+
+// Demander un dépannage
+export const demanderDepannage = async (data) => {
     try {
-        const position = await getCurrentPosition();
-        
-        const response = await api.post('/depannage/demande', {
-            lat: position.lat,
-            lng: position.lng,
-            adresse: null
-        });
-        
-        return {
-            success: true,
-            demandeId: response.data.id,
-            position: position,
-            client: response.data.client
-        };
+        const response = await api.post('/depannage/demande', data);
+        return response.data;
     } catch (error) {
-        console.error('Erreur demande dépannage:', error);
+        console.error('Erreur demanderDepannage:', error);
         throw error;
     }
 };
 
+// Suivre une demande
 export const suivreDemande = async (demandeId) => {
     try {
         const response = await api.get(`/depannage/suivi/${demandeId}`);
         return response.data;
     } catch (error) {
-        console.error('Erreur suivi:', error);
+        console.error('Erreur suivreDemande:', error);
         throw error;
     }
 };
 
+// ==================== ADMIN ====================
+
+// Récupérer toutes les demandes
 export const getDemandesDepannage = async () => {
     try {
         const response = await api.get('/depannage/demandes');
         return response.data;
     } catch (error) {
-        console.error('Erreur chargement demandes:', error);
+        console.error('Erreur getDemandesDepannage:', error);
         throw error;
     }
 };
 
-export const accepterDemande = async (demandeId, technicienId = null) => {
+// Récupérer les techniciens (pour assignation)
+export const getTechniciens = async () => {
     try {
-        const response = await api.put(`/depannage/demande/${demandeId}/accepter`, {
-            technicien_id: technicienId
-        });
+        const response = await api.get('/utilisateurs?role=technicien');
         return response.data;
     } catch (error) {
-        console.error('Erreur acceptation:', error);
+        console.error('Erreur getTechniciens:', error);
         throw error;
     }
 };
 
+// Accepter une demande (admin)
+export const accepterDemande = async (demandeId) => {
+    try {
+        const response = await api.put(`/depannage/demande/${demandeId}/accepter`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur accepterDemande:', error);
+        throw error;
+    }
+};
+
+// Refuser une demande (admin)
 export const refuserDemande = async (demandeId) => {
     try {
         const response = await api.put(`/depannage/demande/${demandeId}/refuser`);
         return response.data;
     } catch (error) {
-        console.error('Erreur refus:', error);
+        console.error('Erreur refuserDemande:', error);
         throw error;
     }
 };
 
-// AJOUTER CES FONCTIONS À frontend/src/services/depannageApi.js
+// Assigner un technicien à une demande (admin)
+export const assignerTechnicien = async (demandeId, technicienId) => {
+    try {
+        const response = await api.put(`/depannage/demande/${demandeId}/assigner`, {
+            technicien_id: technicienId
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur assignerTechnicien:', error);
+        throw error;
+    }
+};
 
-/**
- * Technicien - Récupérer les demandes disponibles
- */
+// ==================== TECHNICIEN / DÉPANNEUR ====================
+
+// Récupérer les missions du technicien/dépanneur
 export const getTechnicienDemandes = async () => {
     try {
         const response = await api.get('/depannage/technicien/demandes');
@@ -81,12 +97,10 @@ export const getTechnicienDemandes = async () => {
     }
 };
 
-/**
- * Technicien - Accepter une mission
- */
-export const accepterMission = async (demandeId) => {
+// Accepter une mission (technicien/dépanneur)
+export const accepterMission = async (missionId) => {
     try {
-        const response = await api.put(`/depannage/technicien/mission/${demandeId}/accepter`);
+        const response = await api.put(`/depannage/technicien/mission/${missionId}/accepter`);
         return response.data;
     } catch (error) {
         console.error('Erreur accepterMission:', error);
@@ -94,12 +108,10 @@ export const accepterMission = async (demandeId) => {
     }
 };
 
-/**
- * Technicien - Terminer une mission
- */
-export const terminerMission = async (demandeId) => {
+// Terminer une mission (technicien/dépanneur)
+export const terminerMission = async (missionId) => {
     try {
-        const response = await api.put(`/depannage/technicien/mission/${demandeId}/terminer`);
+        const response = await api.put(`/depannage/technicien/mission/${missionId}/terminer`);
         return response.data;
     } catch (error) {
         console.error('Erreur terminerMission:', error);
@@ -107,9 +119,7 @@ export const terminerMission = async (demandeId) => {
     }
 };
 
-/**
- * Technicien - Mettre à jour la position GPS
- */
+// Mettre à jour la position GPS
 export const mettreAJourPosition = async (demandeId, lat, lng) => {
     try {
         const response = await api.post('/depannage/technicien/position', {
@@ -120,35 +130,6 @@ export const mettreAJourPosition = async (demandeId, lat, lng) => {
         return response.data;
     } catch (error) {
         console.error('Erreur mettreAJourPosition:', error);
-        throw error;
-    }
-};
-
-/**
- * Admin - Récupérer la liste des dépanneurs disponibles
- */
-export const getDepanneurs = async () => {
-    try {
-        // Récupérer tous les utilisateurs avec le rôle 'depanneur'
-        const response = await api.get('/utilisateurs?role=depanneur');
-        return response.data;
-    } catch (error) {
-        console.error('Erreur getDepanneurs:', error);
-        throw error;
-    }
-};
-
-/**
- * Admin - Assigner un dépanneur à une demande
- */
-export const assignerDepanneur = async (demandeId, technicienId) => {
-    try {
-        const response = await api.put(`/depannage/demande/${demandeId}/assigner`, {
-            technicien_id: technicienId
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Erreur assignerDepanneur:', error);
         throw error;
     }
 };

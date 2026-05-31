@@ -16,9 +16,9 @@ import {
   faPhone,
   faEnvelope,
   faFileInvoice,
-  faTruck,           // NOUVEAU - Icône dépanneur
-  faShieldAlt,       // NOUVEAU - Icône sécurité
-  faHeadset,        // NOUVEAU - Icône support
+  faTruck,           
+  faShieldAlt,      
+  faHeadset,       
   faMapMarkerAl,
   faRoute,
   faCheckCircle,
@@ -93,7 +93,7 @@ function Home() {
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
           <h1 style={{ fontSize: '3rem', color: 'var(--secondary-color)' }}>
             <FontAwesomeIcon icon={faCar} style={{ marginRight: '15px' }} />
-            Garage Pro
+            TwentyOne Garage
           </h1>
           <p style={{ fontSize: '1.2rem', marginTop: '20px', color: 'var(--text-light)' }}>
             Bonjour {user?.prenom} {user?.nom}, bienvenue dans votre espace
@@ -160,7 +160,7 @@ function Home() {
           <div style={{ animation: 'fadeInUp 0.8s ease-out' }}>
             <FontAwesomeIcon icon={faCar} size="4x" style={{ color: '#e94560', marginBottom: '20px' }} />
             <h1 style={{ fontSize: '3.5rem', marginBottom: '20px', color: '#fff', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
-              Garage Pro
+              TwentyOne Garage  
             </h1>
             <p style={{ fontSize: '1.3rem', marginBottom: '30px', color: 'rgba(255,255,255,0.9)' }}>
               Gérez vos véhicules, prenez rendez-vous et suivez vos interventions en ligne
