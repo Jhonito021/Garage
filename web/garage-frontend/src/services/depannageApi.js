@@ -129,7 +129,8 @@ export const mettreAJourPosition = async (demandeId, lat, lng) => {
  */
 export const getDepanneurs = async () => {
     try {
-        const response = await api.get('/depannage/depanneurs');
+        // Récupérer tous les utilisateurs avec le rôle 'depanneur'
+        const response = await api.get('/utilisateurs?role=depanneur');
         return response.data;
     } catch (error) {
         console.error('Erreur getDepanneurs:', error);

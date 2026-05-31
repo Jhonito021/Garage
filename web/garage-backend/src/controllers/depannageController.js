@@ -478,10 +478,9 @@ const getDepanneurs = async (req, res) => {
  * Admin - Assigner un dépanneur à une demande
  */
 const assignerDepanneur = async (req, res) => {
-    // VERSION TEST - À ENLEVER EN PRODUCTION
-    
-    if (!req.session || !req.session.userId) {
-        return res.status(401).json({ error: 'Non authentifié' });
+    // Vérifier que l'utilisateur est admin
+    if (!req.session || req.session.userRole !== 'admin') {
+        return res.status(403).json({ error: 'Accès non autorisé - Réservé aux administrateurs' });
     }
 
     const { id } = req.params;
@@ -494,7 +493,7 @@ const assignerDepanneur = async (req, res) => {
     try {
         // Vérifier que la demande existe
         const [demande] = await db.query(
-            'SELECT id, statut FROM depannage_demandes WHERE id = ?',
+            'SELECT id, statut, client_nom, client_prenom FROM depannage_demandes WHERE id = ?',
             [id]
         );
 
@@ -502,19 +501,22 @@ const assignerDepanneur = async (req, res) => {
             return res.status(404).json({ error: 'Demande non trouvée' });
         }
 
+        // Vérifier que la demande est encore en attente
         if (demande[0].statut !== 'en_attente') {
             return res.status(400).json({ error: 'Cette demande a déjà été traitée' });
         }
 
+        // Vérifier que le dépanneur existe et a le rôle 'depanneur'
         const [technicien] = await db.query(
-            'SELECT id, nom, prenom FROM utilisateurs WHERE id = ? AND role = "technicien" AND actif = 1',
+            'SELECT id, nom, prenom FROM utilisateurs WHERE id = ? AND role = "depanneur" AND actif = 1',
             [technicien_id]
         );
 
         if (technicien.length === 0) {
-            return res.status(404).json({ error: 'Dépanneur non trouvé' });
+            return res.status(404).json({ error: 'Dépanneur non trouvé ou inactif' });
         }
 
+        // Assigner le dépanneur
         await db.query(
             `UPDATE depannage_demandes 
              SET technicien_id = ?, 
@@ -526,7 +528,7 @@ const assignerDepanneur = async (req, res) => {
 
         res.json({ 
             success: true, 
-            message: `Dépanneur assigné avec succès`
+            message: `Dépanneur ${technicien[0].prenom} ${technicien[0].nom} assigné avec succès`
         });
     } catch (err) {
         console.error('Erreur assignerDepanneur:', err);

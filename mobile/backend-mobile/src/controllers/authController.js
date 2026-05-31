@@ -3,35 +3,39 @@ const db = require('../models/db');
 
 // Inscription
 const register = async (req, res) => {
-    const { email, mot_de_passe, nom, prenom, telephone, adresse } = req.body;
+    const { email, mot_de_passe, nom, prenom, role } = req.body;
 
+    // Validation des champs requis
     if (!email || !mot_de_passe || !nom || !prenom) {
-        return res.status(400).json({ error: 'Champs manquants' });
+        return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
 
     try {
+        // Hash du mot de passe
         const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
-        const [result] = await db.query(
-            'INSERT INTO utilisateurs (email, mot_de_passe, nom, prenom, telephone, adresse, role) VALUES (?, ?, ?, ?, ?, ?, "client")',
-            [email, hashedPassword, nom, prenom, telephone, adresse]
-        );
         
-        res.status(201).json({ 
-            message: 'Compte créé', 
-            id: result.insertId,
-            user: {
-                id: result.insertId,
-                email: email,
-                nom: nom,
-                prenom: prenom,
-                role: 'client'
-            }
+        // Requête d'insertion
+        const query = 'INSERT INTO utilisateurs (email, mot_de_passe, nom, prenom, role) VALUES (?, ?, ?, ?, ?)';
+        const params = [email, hashedPassword, nom, prenom, role || 'client'];
+        
+        const [result] = await db.query(query, params);
+        
+        console.log('[AUTH] Utilisateur créé avec succès - email:', email, 'role:', role || 'client');
+        
+        res.status(201).json({
+            message: 'Utilisateur créé avec succès',
+            userId: result.insertId,
+            nom: nom,
+            prenom: prenom,
+            email: email,
+            role: role || 'client'
         });
+        
     } catch (err) {
         if (err.code === 'ER_DUP_ENTRY') {
             res.status(400).json({ error: 'Email déjà utilisé' });
         } else {
-            console.error(err);
+            console.error('[AUTH] Erreur:', err);
             res.status(500).json({ error: 'Erreur serveur' });
         }
     }
@@ -39,10 +43,19 @@ const register = async (req, res) => {
 
 // Connexion
 const login = async (req, res) => {
-    const { email, mot_de_passe } = req.body;
+    const { email, mot_de_passe, role } = req.body;
 
     try {
-        const [rows] = await db.query('SELECT * FROM utilisateurs WHERE email = ?', [email]);
+        let query = 'SELECT * FROM utilisateurs WHERE email = ?';
+        let params = [email];
+        
+        // Si un rôle est spécifié, vérifier que l'utilisateur a ce rôle
+        if (role) {
+            query += ' AND role = ?';
+            params.push(role);
+        }
+
+        const [rows] = await db.query(query, params);
         if (rows.length === 0) {
             return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
         }
@@ -59,6 +72,7 @@ const login = async (req, res) => {
         req.session.userRole = user.role;
 
         res.json({
+            success: true,
             user: {
                 id: user.id,
                 email: user.email,

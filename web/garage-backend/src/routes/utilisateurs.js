@@ -1,3 +1,4 @@
+// backend/src/routes/utilisateurs.js
 const express = require('express');
 const db = require('../models/db');
 const bcrypt = require('bcrypt');
@@ -55,6 +56,14 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ error: 'Email, mot de passe, nom et prénom sont requis' });
     }
 
+    // Vérifier que le rôle est valide
+    const validRoles = ['client', 'technicien', 'depanneur', 'admin', 'caissier'];
+    const userRole = role || 'client';
+    
+    if (!validRoles.includes(userRole)) {
+        return res.status(400).json({ error: 'Rôle invalide' });
+    }
+
     try {
         // Vérifier si l'email existe déjà
         const [existing] = await db.query('SELECT id FROM utilisateurs WHERE email = ?', [email]);
@@ -67,7 +76,7 @@ router.post('/', async (req, res) => {
             `INSERT INTO utilisateurs 
             (email, mot_de_passe, nom, prenom, telephone, specialite, role, actif) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [email, hashedPassword, nom, prenom, telephone || null, specialite || null, role || 'technicien', actif !== undefined ? actif : 1]
+            [email, hashedPassword, nom, prenom, telephone || null, specialite || null, userRole, actif !== undefined ? actif : 1]
         );
         
         res.status(201).json({ id: result.insertId, message: 'Utilisateur créé avec succès' });
@@ -104,7 +113,7 @@ router.delete('/:id', async (req, res) => {
         // Vérifier si l'utilisateur a des interventions
         const [interventions] = await db.query('SELECT id FROM interventions WHERE technicien_id = ?', [userId]);
         if (interventions.length > 0) {
-            return res.status(400).json({ error: 'Impossible de supprimer : ce technicien a des interventions' });
+            return res.status(400).json({ error: 'Impossible de supprimer : cet utilisateur a des interventions' });
         }
 
         await db.query('DELETE FROM utilisateurs WHERE id = ?', [userId]);

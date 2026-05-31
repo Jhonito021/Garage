@@ -32,10 +32,14 @@ export default function LoginScreen({ navigation }) {
         mot_de_passe: password,
       });
 
-      console.log('Réponse:', response.data);
+      console.log('Réponse:', response.data, 'Status:', response.status);
 
-      if (response.data.user) {
-        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+      if (response.status === 200 && response.data.user) {
+        const userData = {
+          ...response.data.user,
+          role: 'client',
+        };
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
         Alert.alert('Succès', 'Connexion réussie');
         
         // Remplacer par 'App' (le nom de l'écran dans AppNavigator)
@@ -44,7 +48,7 @@ export default function LoginScreen({ navigation }) {
           routes: [{ name: 'Client' }],
         });
       } else {
-        Alert.alert('Erreur', 'Email ou mot de passe incorrect');
+        Alert.alert('Erreur', response.data.error || 'Email ou mot de passe incorrect');
       }
     } catch (err) {
       console.error('Erreur:', err);

@@ -8,7 +8,7 @@ const app = express();
 
 // Session middleware
 app.use(session({
-    secret: 'mobile_secret_key_2024',
+    secret: process.env.SESSION_SECRET || 'default_secret_key',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -46,12 +46,16 @@ const vehiculeRoutes = require('./src/routes/vehicules');
 const rdvRoutes = require('./src/routes/rdv');
 const factureRoutes = require('./src/routes/factures');
 const suiviRoutes = require('./src/routes/suivi');
+const depannageRoutes = require('./src/routes/depannage');
+const interventionRoutes = require('./src/routes/interventions');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
 app.use('/api/rdv', rdvRoutes);
 app.use('/api/factures', factureRoutes);
 app.use('/api/suivi', suiviRoutes);
+app.use('/api/depannage', depannageRoutes);
+app.use('/api/interventions', interventionRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Serveur mobile démarré' });

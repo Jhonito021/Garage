@@ -8,7 +8,14 @@ export default function HomeScreen({ navigation }) {
     const checkLogin = async () => {
       const user = await AsyncStorage.getItem('user');
       if (user) {
-        navigation.replace('Client');
+        const userData = JSON.parse(user);
+        if (userData.role === 'client') {
+          navigation.replace('Client');
+        } else if (userData.role === 'depanneur') {
+          navigation.replace('Depanneur');
+        } else if (userData.role === 'technicien') {
+          navigation.replace('Technicien');
+        }
       }
     };
     checkLogin();
@@ -24,18 +31,44 @@ export default function HomeScreen({ navigation }) {
         </Text>
       </View>
 
-      <View style={styles.cardsContainer}>
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Login')}>
-          <Ionicons name="log-in" size={40} color="#e94560" />
-          <Text style={styles.cardTitle}>Connexion</Text>
-          <Text style={styles.cardText}>Accédez à votre espace</Text>
-        </TouchableOpacity>
+      <View style={styles.rolesSection}>
+        <Text style={styles.rolesTitle}>Espace Client</Text>
+        <View style={styles.cardsContainer}>
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Login')}>
+            <Ionicons name="log-in" size={40} color="#e94560" />
+            <Text style={styles.cardTitle}>Connexion</Text>
+            <Text style={styles.cardText}>Se connecter</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Register')}>
-          <Ionicons name="person-add" size={40} color="#e94560" />
-          <Text style={styles.cardTitle}>Inscription</Text>
-          <Text style={styles.cardText}>Créez votre compte</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Register')}>
+            <Ionicons name="person-add" size={40} color="#e94560" />
+            <Text style={styles.cardTitle}>Inscription</Text>
+            <Text style={styles.cardText}>Créer un compte</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.rolesSection}>
+        <Text style={styles.rolesTitle}>Espace Professionnel</Text>
+        <View style={styles.cardsContainer}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('DepanneurLogin')}
+          >
+            <Ionicons name="alert-circle" size={40} color="#e94560" />
+            <Text style={styles.cardTitle}>Dépanneur</Text>
+            <Text style={styles.cardText}>Connexion</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('TechnicienLogin')}
+          >
+            <Ionicons name="wrench" size={40} color="#e94560" />
+            <Text style={styles.cardTitle}>Technicien</Text>
+            <Text style={styles.cardText}>Connexion</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.infoContainer}>
@@ -91,7 +124,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-around',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  rolesSection: {
+    marginBottom: 10,
+  },
+  rolesTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#e94560',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    marginBottom: 10,
   },
   card: {
     backgroundColor: '#1e1e1e',

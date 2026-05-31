@@ -1,5 +1,5 @@
 // frontend/src/pages/admin/AdminDepannage.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';  // ← Ajout de useRef
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faTruck, 
@@ -80,7 +80,7 @@ const TILE_LAYER = {
   minZoom: 5
 };
 
-const GARAGE_POSITION = { lat: -18.912086, lng: 47.493216 };
+const GARAGE_POSITION = { lat: 48.8566, lng: 2.3522 };
 
 // ==================== COMPOSANT CARTE ====================
 
@@ -145,7 +145,6 @@ const DepannageMap = ({ demande }) => {
   // Ajouter le marqueur du dépanneur s'il a une position
   useEffect(() => {
     if (mapRef.current && depanneurLat && depanneurLng && !isNaN(depanneurLat) && !isNaN(depanneurLng)) {
-      // Supprimer l'ancien marqueur s'il existe
       if (window.depanneurMarker) {
         mapRef.current.removeLayer(window.depanneurMarker);
       }
@@ -157,7 +156,6 @@ const DepannageMap = ({ demande }) => {
           📍 Position en temps réel
         `);
       
-      // Recalculer la distance depuis le dépanneur
       const distFromDep = calculateDistance(depanneurLat, depanneurLng, clientLat, clientLng);
       setDepanneurInfo({ distance: distFromDep });
     }
@@ -232,7 +230,6 @@ function AdminDepannage() {
   const [error, setError] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(true);
   
-  // États pour le modal d'assignation
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedDemandeForAssign, setSelectedDemandeForAssign] = useState(null);
   const [selectedDepanneurId, setSelectedDepanneurId] = useState('');
@@ -252,11 +249,15 @@ function AdminDepannage() {
     }
   };
 
-  // Récupérer les dépanneurs (techniciens)
+  // Récupérer UNIQUEMENT les dépanneurs (role = 'depanneur')
   const fetchDepanneurs = async () => {
     try {
+      // Filtrer uniquement les utilisateurs avec role = 'depanneur'
       const data = await getDepanneurs();
-      setDepanneurs(data);
+      // S'assurer que seuls les dépanneurs sont affichés
+      const onlyDepanneurs = data.filter(user => user.role === 'depanneur');
+      setDepanneurs(onlyDepanneurs);
+      console.log('Dépanneurs disponibles:', onlyDepanneurs);
     } catch (err) {
       console.error('Erreur chargement dépanneurs:', err);
     }
@@ -279,24 +280,11 @@ function AdminDepannage() {
     };
   }, [autoRefresh]);
 
-  // Filtrer les demandes
   const filteredDemandes = demandes.filter(d => {
     if (filter === 'all') return true;
     return d.statut === filter;
   });
 
-  // Accepter une demande (assignation directe)
-  const handleAccepter = async (demande) => {
-    try {
-      await accepterDemande(demande.id);
-      await fetchDemandes();
-      setSelectedDemande(demande);
-    } catch (err) {
-      alert('Erreur lors de l\'acceptation');
-    }
-  };
-
-  // Refuser une demande
   const handleRefuser = async (demandeId) => {
     if (window.confirm('Confirmez-vous le refus de cette demande ?')) {
       try {
@@ -318,7 +306,7 @@ function AdminDepannage() {
     setShowAssignModal(true);
   };
 
-  // Assigner un dépanneur
+  // Assigner un dépanneur (uniquement les utilisateurs avec role = 'depanneur')
   const handleAssigner = async () => {
     if (!selectedDepanneurId) {
       alert('Veuillez sélectionner un dépanneur');
@@ -330,9 +318,8 @@ function AdminDepannage() {
       await assignerDepanneur(selectedDemandeForAssign.id, selectedDepanneurId);
       alert('Dépanneur assigné avec succès');
       setShowAssignModal(false);
-      fetchDemandes(); // Rafraîchir la liste
+      fetchDemandes();
       
-      // Mettre à jour la demande sélectionnée si c'est la même
       if (selectedDemande?.id === selectedDemandeForAssign.id) {
         setSelectedDemande(null);
       }
@@ -343,7 +330,6 @@ function AdminDepannage() {
     }
   };
 
-  // Statistiques
   const stats = {
     en_attente: demandes.filter(d => d.statut === 'en_attente').length,
     acceptee: demandes.filter(d => d.statut === 'acceptee').length,
@@ -352,7 +338,6 @@ function AdminDepannage() {
     total: demandes.length
   };
 
-  // Obtenir la couleur du statut
   const getStatusStyle = (statut) => {
     switch(statut) {
       case 'en_attente': 
@@ -368,7 +353,6 @@ function AdminDepannage() {
     }
   };
 
-  // Formater les coordonnées
   const formatCoordinate = (value) => {
     const num = parseFloat(value);
     return isNaN(num) ? '0.0000' : num.toFixed(4);
@@ -400,7 +384,7 @@ function AdminDepannage() {
                 <FontAwesomeIcon icon={faTruck} style={{ marginRight: '10px' }} />
                 Gestion des dépannages
               </h1>
-              <p className="text-light">Gérez les demandes de dépannage d'urgence et assignez les dépanneurs</p>
+              <p className="text-light">Gérez les demandes de dépannage et assignez-les aux dépanneurs</p>
             </div>
             <button 
               onClick={() => setAutoRefresh(!autoRefresh)}
@@ -673,7 +657,7 @@ function AdminDepannage() {
         </div>
       </div>
 
-      {/* Modal d'assignation des dépanneurs */}
+      {/* Modal d'assignation des dépanneurs (UNIQUEMENT les dépanneurs) */}
       {showAssignModal && selectedDemandeForAssign && (
         <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
@@ -706,13 +690,14 @@ function AdminDepannage() {
                   </option>
                 ))}
               </select>
+              <small className="text-light">Seuls les utilisateurs avec le rôle "dépanneur" apparaissent ici</small>
             </div>
             
             {depanneurs.length === 0 && (
               <div style={{ padding: '12px', backgroundColor: 'rgba(244, 67, 54, 0.1)', borderRadius: '8px', marginBottom: '15px' }}>
                 <p className="text-danger" style={{ fontSize: '13px', margin: 0 }}>
                   <FontAwesomeIcon icon={faTimesCircle} style={{ marginRight: '8px' }} />
-                  Aucun dépanneur disponible. Veuillez d'abord créer un compte technicien.
+                  Aucun dépanneur disponible. Veuillez d'abord créer un compte dépanneur.
                 </p>
               </div>
             )}
