@@ -28,7 +28,7 @@ export default function DepanneurLoginScreen({ navigation }) {
       const response = await api.post('/auth/login', {
         email,
         mot_de_passe: password,
-        role: 'depanneur',
+        role: 'technicien',
       });
 
       if (response.status === 200 && response.data.user) {

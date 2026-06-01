@@ -1,3 +1,4 @@
+// frontend-mobile/src/screens/client/SuiviScreen.jsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -17,25 +18,36 @@ export default function SuiviScreen() {
   const [filteredInterventions, setFilteredInterventions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState('all'); // all, en_cours, en_attente, terminee
+  const [filter, setFilter] = useState('all');
+  const [userId, setUserId] = useState(null);
 
   const fetchInterventions = async () => {
     try {
       const userData = await AsyncStorage.getItem('user');
-      if (!userData) return;
+      if (!userData) {
+        console.log('Aucun utilisateur connecté');
+        setLoading(false);
+        return;
+      }
       
       const user = JSON.parse(userData);
-      const { data, status } = await api.get(`/suivi/interventions?client_id=${user.id}`);
+      setUserId(user.id);
       
-      if (status === 200 && Array.isArray(data)) {
-        setInterventions(data);
-        applyFilter(data, filter);
+      console.log('Fetching interventions for client:', user.id);
+      
+      // CORRECTION: Ajouter client_id en paramètre
+      const response = await api.get(`/suivi/interventions?client_id=${user.id}`);
+      console.log('Réponse:', response);
+      
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setInterventions(response.data);
+        applyFilter(response.data, filter);
       } else {
         setInterventions([]);
         setFilteredInterventions([]);
       }
     } catch (err) {
-      console.error('Erreur:', err);
+      console.error('Erreur fetchInterventions:', err);
       setInterventions([]);
       setFilteredInterventions([]);
     } finally {
@@ -122,6 +134,7 @@ export default function SuiviScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#e94560" />
+        <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
   }
@@ -154,28 +167,24 @@ export default function SuiviScreen() {
           style={[styles.filterButton, filter === 'all' && styles.filterActive]}
           onPress={() => setFilter('all')}
         >
-          <Ionicons name="apps" size={14} color={filter === 'all' ? '#fff' : '#e94560'} />
           <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>Toutes</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'en_cours' && styles.filterActive]}
           onPress={() => setFilter('en_cours')}
         >
-          <Ionicons name="play-circle" size={14} color={filter === 'en_cours' ? '#fff' : '#e94560'} />
           <Text style={[styles.filterText, filter === 'en_cours' && styles.filterTextActive]}>En cours</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'en_attente' && styles.filterActive]}
           onPress={() => setFilter('en_attente')}
         >
-          <Ionicons name="hourglass" size={14} color={filter === 'en_attente' ? '#fff' : '#e94560'} />
           <Text style={[styles.filterText, filter === 'en_attente' && styles.filterTextActive]}>En attente</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'terminee' && styles.filterActive]}
           onPress={() => setFilter('terminee')}
         >
-          <Ionicons name="checkmark-circle" size={14} color={filter === 'terminee' ? '#fff' : '#e94560'} />
           <Text style={[styles.filterText, filter === 'terminee' && styles.filterTextActive]}>Terminées</Text>
         </TouchableOpacity>
       </View>
@@ -245,6 +254,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#121212',
   },
+  loadingText: {
+    color: '#aaaaaa',
+    marginTop: 10,
+  },
   content: {
     padding: 15,
   },
@@ -280,13 +293,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   filterButton: {
-    flexDirection: 'row',
+    flex: 1,
     alignItems: 'center',
     backgroundColor: '#1e1e1e',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    gap: 6,
+    marginHorizontal: 4,
   },
   filterActive: {
     backgroundColor: '#e94560',

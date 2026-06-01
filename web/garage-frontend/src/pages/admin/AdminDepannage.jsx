@@ -80,7 +80,7 @@ const TILE_LAYER = {
   minZoom: 5
 };
 
-const GARAGE_POSITION = { lat: 48.8566, lng: 2.3522 };
+const GARAGE_POSITION = { lat: -18.912086, lng: 47.493216 };
 
 // ==================== COMPOSANT CARTE ====================
 

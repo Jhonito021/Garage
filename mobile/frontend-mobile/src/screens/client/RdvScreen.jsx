@@ -1,3 +1,4 @@
+// frontend-mobile/src/screens/client/RdvScreen.jsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -92,13 +93,10 @@ export default function RdvScreen() {
     }
   };
 
-  // Récupérer l'intervention associée au rendez-vous
   const getInterventionForRdv = (rdvId) => {
-    const found = interventions.find(i => i.rdv_id === rdvId);
-    return found;
+    return interventions.find(i => i.rdv_id === rdvId);
   };
 
-  // Vérifier si le rendez-vous a une intervention en cours ou terminée
   const isInterventionBlocked = (rdvId) => {
     const intervention = getInterventionForRdv(rdvId);
     if (intervention) {
@@ -109,7 +107,6 @@ export default function RdvScreen() {
     return false;
   };
 
-  // Obtenir le message d'information
   const getInfoMessage = (rdv) => {
     if (rdv.statut === 'annulé') {
       return { message: "Ce rendez-vous a été annulé", type: 'danger' };
@@ -168,27 +165,27 @@ export default function RdvScreen() {
     const infoMessage = getInfoMessage(item);
     const blocked = isInterventionBlocked(item.id);
     const isCancelled = item.statut === 'annulé';
-    
-    // Afficher le bouton seulement si le rendez-vous n'est PAS annulé ET PAS bloqué par une intervention
     const showCancelButton = !isCancelled && !blocked;
     
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>
-            <Ionicons name="build" size={14} color="#e94560" /> {item.service_demande}
-          </Text>
+          <View style={styles.cardTitleContainer}>
+            <Ionicons name="build" size={14} color="#e94560" />
+            <Text style={styles.cardTitle}>{item.service_demande}</Text>
+          </View>
           {getStatusBadge(item)}
         </View>
         <View style={styles.cardContent}>
-          <Text style={styles.cardText}>
-            <Ionicons name="calendar" size={12} color="#aaaaaa" /> {new Date(item.date_heure).toLocaleString('fr-FR')}
-          </Text>
-          <Text style={styles.cardText}>
-            <Ionicons name="car" size={12} color="#aaaaaa" /> {item.marque} {item.modele} - {item.immatriculation}
-          </Text>
+          <View style={styles.cardTextRow}>
+            <Ionicons name="calendar" size={12} color="#aaaaaa" />
+            <Text style={styles.cardText}>{new Date(item.date_heure).toLocaleString('fr-FR')}</Text>
+          </View>
+          <View style={styles.cardTextRow}>
+            <Ionicons name="car" size={12} color="#aaaaaa" />
+            <Text style={styles.cardText}>{item.marque} {item.modele} - {item.immatriculation}</Text>
+          </View>
           
-          {/* Message d'information */}
           {infoMessage && (
             <View style={[
               styles.infoContainer,
@@ -213,7 +210,6 @@ export default function RdvScreen() {
           )}
         </View>
         
-        {/* Bouton annuler - uniquement si le rendez-vous n'est pas annulé ET pas bloqué */}
         {showCancelButton && (
           <TouchableOpacity style={styles.cancelButton} onPress={() => handleAnnuler(item.id)}>
             <Ionicons name="close" size={16} color="#fff" />
@@ -228,6 +224,7 @@ export default function RdvScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#e94560" />
+        <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
   }
@@ -256,102 +253,110 @@ export default function RdvScreen() {
       />
 
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nouveau rendez-vous</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#e94560" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView>
-              <Text style={styles.label}>Véhicule</Text>
-              {vehicules.map((v) => (
-                <TouchableOpacity
-                  key={v.id}
-                  style={[
-                    styles.vehicleOption,
-                    formData.vehicule_id === v.id && styles.vehicleOptionSelected,
-                  ]}
-                  onPress={() => setFormData({ ...formData, vehicule_id: v.id })}
-                >
-                  <Text style={styles.vehicleOptionText}>
-                    {v.marque} {v.modele} - {v.immatriculation}
-                  </Text>
-                  {formData.vehicule_id === v.id && (
-                    <Ionicons name="checkmark" size={16} color="#e94560" />
-                  )}
-                </TouchableOpacity>
-              ))}
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalTitle}>Nouveau rendez-vous</Text>
+        <TouchableOpacity onPress={() => setModalVisible(false)}>
+          <Ionicons name="close" size={24} color="#e94560" />
+        </TouchableOpacity>
+      </View>
+      
+      <ScrollView>
+        {/* Véhicule */}
+        <Text style={styles.label}>Véhicule</Text>
+        {vehicules.map((v) => (
+          <TouchableOpacity
+            key={v.id}
+            style={[
+              styles.vehicleOption,
+              formData.vehicule_id === v.id && styles.vehicleOptionSelected,
+            ]}
+            onPress={() => setFormData({ ...formData, vehicule_id: v.id })}
+          >
+            <Text style={styles.vehicleOptionText}>
+              {v.marque} {v.modele} - {v.immatriculation}
+            </Text>
+            {formData.vehicule_id === v.id && (
+              <Ionicons name="checkmark" size={16} color="#e94560" />
+            )}
+          </TouchableOpacity>
+        ))}
 
-              <Text style={styles.label}>Date</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="AAAA-MM-JJ"
-                placeholderTextColor="#aaaaaa"
-                value={formData.date}
-                onChangeText={(value) => {
-                  setFormData({ ...formData, date: value });
-                  fetchCreneaux(value);
-                }}
-              />
+        {/* Date */}
+        <Text style={styles.label}>Date</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="AAAA-MM-JJ"
+          placeholderTextColor="#aaaaaa"
+          value={formData.date}
+          onChangeText={(value) => {
+            setFormData({ ...formData, date: value });
+            fetchCreneaux(value);
+          }}
+        />
 
-              <Text style={styles.label}>Horaire</Text>
-              <View style={styles.creneauxContainer}>
-                {creneaux.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    style={[
-                      styles.creneauOption,
-                      formData.heure === c && styles.creneauOptionSelected,
-                    ]}
-                    onPress={() => setFormData({ ...formData, heure: c })}
-                  >
-                    <Ionicons name="time" size={12} color="#f5f5f5" />
-                    <Text style={styles.creneauText}>{c}</Text>
-                  </TouchableOpacity>
-                ))}
-                {creneaux.length === 0 && formData.date && (
-                  <Text style={styles.noCreneaux}>Aucun créneau disponible</Text>
-                )}
-              </View>
-
-              <Text style={styles.label}>Service</Text>
-              <TouchableOpacity
-                style={[
-                  styles.serviceOption,
-                  formData.service_demande === 'Vidange' && styles.serviceOptionSelected,
-                ]}
-                onPress={() => setFormData({ ...formData, service_demande: 'Vidange' })}
-              >
-                <Text style={styles.serviceText}>Vidange</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.serviceOption,
-                  formData.service_demande === 'Contrôle technique' && styles.serviceOptionSelected,
-                ]}
-                onPress={() => setFormData({ ...formData, service_demande: 'Contrôle technique' })}
-              >
-                <Text style={styles.serviceText}>Contrôle technique</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.serviceOption,
-                  formData.service_demande === 'Réparation' && styles.serviceOptionSelected,
-                ]}
-                onPress={() => setFormData({ ...formData, service_demande: 'Réparation' })}
-              >
-                <Text style={styles.serviceText}>Réparation</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Confirmer</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
+        {/* Horaire */}
+        <Text style={styles.label}>Horaire</Text>
+        <View style={styles.creneauxContainer}>
+          {creneaux.map((c) => (
+            <TouchableOpacity
+              key={c}
+              style={[
+                styles.creneauOption,
+                formData.heure === c && styles.creneauOptionSelected,
+              ]}
+              onPress={() => setFormData({ ...formData, heure: c })}
+            >
+              <Ionicons name="time" size={12} color="#f5f5f5" />
+              <Text style={styles.creneauText}>{c}</Text>
+            </TouchableOpacity>
+          ))}
+          {creneaux.length === 0 && formData.date && (
+            <Text style={styles.noCreneaux}>Aucun créneau disponible</Text>
+          )}
         </View>
-      </Modal>
+
+        {/* Service */}
+        <Text style={styles.label}>Service</Text>
+        
+        <TouchableOpacity
+          style={[
+            styles.serviceOption,
+            formData.service_demande === 'Vidange' && styles.serviceOptionSelected,
+          ]}
+          onPress={() => setFormData({ ...formData, service_demande: 'Vidange' })}
+        >
+          <Text style={styles.serviceText}>Vidange</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.serviceOption,
+            formData.service_demande === 'Contrôle technique' && styles.serviceOptionSelected,
+          ]}
+          onPress={() => setFormData({ ...formData, service_demande: 'Contrôle technique' })}
+        >
+          <Text style={styles.serviceText}>Contrôle technique</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.serviceOption,
+            formData.service_demande === 'Réparation' && styles.serviceOptionSelected,
+          ]}
+          onPress={() => setFormData({ ...formData, service_demande: 'Réparation' })}
+        >
+          <Text style={styles.serviceText}>Réparation</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitButtonText}>Confirmer</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
     </View>
   );
 }
@@ -366,6 +371,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#121212',
+  },
+  loadingText: {
+    color: '#aaaaaa',
+    marginTop: 10,
   },
   addButton: {
     flexDirection: 'row',
@@ -398,12 +407,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
+  cardTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   cardTitle: {
     color: '#e94560',
     fontSize: 16,
     fontWeight: 'bold',
   },
   cardContent: {
+    gap: 8,
+  },
+  cardTextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   cardText: {
@@ -416,6 +435,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     fontSize: 10,
     fontWeight: 'bold',
+    overflow: 'hidden',
   },
   badgeInfo: {
     backgroundColor: '#2196f3',
