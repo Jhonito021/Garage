@@ -475,18 +475,23 @@ label {
 
 /* ==================== NAVBAR ==================== */
 
+/* ==================== NAVBAR ==================== */
+
 .navbar {
     background-color: var(--navbar-bg);
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     box-shadow: var(--shadow);
-    flex-wrap: wrap;
     position: sticky;
     top: 0;
     z-index: 100;
     transition: background-color 0.3s ease;
+}
+
+/* Ligne haute : brand + ThemeToggle + hamburger */
+.navbar-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 30px;
 }
 
 .navbar-brand {
@@ -496,28 +501,96 @@ label {
 
 .navbar-brand a {
     color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Contrôles côté droit de la top-row */
+.navbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Hamburger — caché sur desktop */
+.navbar-hamburger {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--secondary-color);
+    font-size: 1.4rem;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    box-shadow: none;
+}
+
+.navbar-hamburger:hover {
+    background-color: rgba(233, 69, 96, 0.12);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Bloc collapsible : liens + user */
+.navbar-collapse {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px 14px;
+    gap: 20px;
 }
 
 .navbar-links {
     display: flex;
-    gap: 25px;
+    gap: 22px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .navbar-links a {
     color: var(--text-color);
-    transition: color 0.3s ease;
     font-weight: 500;
+    transition: color 0.2s ease;
+    white-space: nowrap;
 }
 
 .navbar-links a:hover {
     color: var(--secondary-color);
 }
 
+/* Bouton dépannage dans la navbar */
+.navbar-link-depannage {
+    background-color: var(--secondary-color);
+    color: white !important;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-weight: bold !important;
+}
+
+.navbar-link-depannage:hover {
+    background-color: var(--secondary-hover);
+    color: white !important;
+}
+
 .navbar-user {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
+    flex-shrink: 0;
+}
+
+.navbar-username {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.btn-danger {
+    background-color: #f44336;
 }
 
 /* Theme Toggle Button */
@@ -740,13 +813,53 @@ label {
     min-height: 100vh;
 }
 
+/* Sidebar toggle button — hidden on desktop */
+.sidebar-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 200;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    background-color: var(--secondary-hover);
+    transform: scale(1.1);
+}
+
+/* Dark overlay when sidebar is open on mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 150;
+}
+
 /* ==================== ADMIN TABLES ==================== */
+
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
-    overflow-x: auto;
-    display: block;
 }
 
 .admin-table thead {
@@ -941,124 +1054,248 @@ label {
 }
 
 @media (max-width: 768px) {
-    .navbar {
-        flex-direction: column;
-        gap: 15px;
-        padding: 15px;
+    /* ── Navbar mobile ── */
+    .navbar-top-row {
+        padding: 12px 16px;
     }
-    
-    .navbar-links {
+
+    /* Hamburger visible */
+    .navbar-hamburger {
+        display: flex;
+        align-items: center;
         justify-content: center;
-        gap: 15px;
     }
-    
+
+    /* Menu collapsible caché par défaut */
+    .navbar-collapse {
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 16px 12px;
+        gap: 0;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .navbar-collapse.open {
+        display: flex;
+    }
+
+    /* Liens en colonne */
+    .navbar-links {
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .navbar-links a {
+        padding: 11px 8px;
+        width: 100%;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .navbar-links a:hover {
+        background-color: rgba(233, 69, 96, 0.08);
+    }
+
+    .navbar-link-depannage {
+        margin-top: 4px;
+        border-radius: 8px !important;
+        justify-content: center;
+    }
+
+    /* User section en bas du menu */
+    .navbar-user {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px 0 4px;
+        gap: 8px;
+    }
+
+    .navbar-user button,
+    .navbar-user a button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .navbar-username {
+        padding: 6px 0;
+        font-size: 0.95rem;
+    }
+
     .hero-title {
         font-size: 2rem;
     }
-    
+
     .hero-subtitle {
         font-size: 1rem;
     }
-    
+
     .grid-2, .grid-3, .grid-4 {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-    
+
     .container {
         padding: 15px;
     }
-    
+
     .flex-between {
         flex-direction: column;
         gap: 15px;
         align-items: stretch;
     }
-    
+
     .admin-sidebar {
         width: 70px;
     }
-    
+
     .admin-sidebar-header h2 {
         display: none;
     }
-    
+
     .admin-sidebar-nav a span {
         display: none;
     }
-    
+
     .admin-sidebar-nav a svg {
         margin-right: 0;
     }
-    
+
     .admin-sidebar-footer button span {
         display: none;
     }
-    
+
     .admin-sidebar-footer button svg {
         margin-right: 0;
     }
-    
+
     .admin-content {
         margin-left: 70px;
         width: calc(100% - 70px);
         padding: 15px;
     }
-    
+
     .info-row {
         flex-direction: column;
         gap: 5px;
     }
-    
+
     .info-label {
         width: 100%;
     }
-    
+
     .modal-content {
         width: 95%;
         padding: 20px;
     }
-    
+
     .form-card {
         padding: 20px;
     }
 }
 
 @media (max-width: 480px) {
+    /* Sidebar: slide-in panel on small screens */
     .admin-sidebar {
         transform: translateX(-100%);
         width: 250px;
+        z-index: 160;
     }
-    
+
     .admin-sidebar.open {
         transform: translateX(0);
     }
-    
+
+    /* Restore text labels when sidebar is fully open */
+    .admin-sidebar.open .admin-sidebar-header h2,
+    .admin-sidebar.open .admin-sidebar-nav a span,
+    .admin-sidebar.open .admin-sidebar-footer button span {
+        display: inline;
+    }
+
+    .admin-sidebar.open .admin-sidebar-nav a svg {
+        margin-right: 0;
+    }
+
     .admin-content {
         margin-left: 0;
         width: 100%;
     }
-    
-    .navbar-links {
-        flex-wrap: wrap;
-        justify-content: center;
+
+    /* Sidebar toggle and overlay visible on mobile */
+    .sidebar-toggle {
+        display: flex;
     }
-    
+
+    .sidebar-overlay {
+        display: block;
+    }
+
+    /* Hero */
     .hero {
         padding: 40px 15px;
     }
-    
+
     .hero-title {
         font-size: 1.5rem;
     }
-    
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hero-buttons a,
+    .hero-buttons button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Stats cards: compact */
+    .stat-card {
+        padding: 12px;
+    }
+
+    .stat-card-icon {
+        font-size: 1.8rem;
+    }
+
     .stat-card-value {
         font-size: 1.5rem;
     }
-    
+
+    /* Forms */
+    .form-group.row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Modal */
+    .modal-content {
+        width: 95%;
+        max-height: 85vh;
+    }
+
     button {
         padding: 8px 16px;
         font-size: 0.85rem;
+    }
+
+    .navbar-top-row {
+        padding: 10px 12px;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .navbar-collapse {
+        padding: 0 12px 10px;
     }
 }
 
@@ -1066,6 +1303,8 @@ label {
 
 @media print {
     .navbar,
+    .navbar-top-row,
+    .navbar-collapse,
     .admin-sidebar,
     button,
     .no-print {
