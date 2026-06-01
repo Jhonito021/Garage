@@ -477,6 +477,17 @@ label {
 
 /* ==================== NAVBAR ==================== */
 
+/*
+ * DESKTOP : une seule ligne
+ *   [Brand]  |  [Links...]  [ThemeToggle] [User/Login]
+ *
+ * MOBILE (≤768px) : deux zones
+ *   [Brand]  [ThemeToggle] [☰]
+ *   ── menu déroulant ──
+ *   [Liens en colonne]
+ *   [Boutons user]
+ */
+
 .navbar {
     background-color: var(--navbar-bg);
     box-shadow: var(--shadow);
@@ -484,19 +495,24 @@ label {
     top: 0;
     z-index: 100;
     transition: background-color 0.3s ease;
+    /* Desktop : flexbox horizontal sur une ligne */
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    gap: 30px;
+    min-height: 62px;
 }
 
-/* Ligne haute : brand + ThemeToggle + hamburger */
+/* Sur desktop, top-row est transparent — brand et controls
+   deviennent des enfants directs de .navbar */
 .navbar-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 30px;
+    display: contents;
 }
 
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .navbar-brand a {
@@ -506,14 +522,16 @@ label {
     gap: 10px;
 }
 
-/* Contrôles côté droit de la top-row */
+/* ThemeToggle + hamburger — à droite sur desktop */
 .navbar-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    margin-left: auto; /* pousse vers la droite */
+    order: 99;         /* toujours en dernier */
 }
 
-/* Hamburger — caché sur desktop */
+/* Hamburger — invisible sur desktop */
 .navbar-hamburger {
     display: none;
     background: transparent;
@@ -533,20 +551,19 @@ label {
     box-shadow: none;
 }
 
-/* Bloc collapsible : liens + user */
+/* Sur desktop, collapse est visible et horizontal */
 .navbar-collapse {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 30px 14px;
     gap: 20px;
+    flex: 1;
 }
 
 .navbar-links {
     display: flex;
-    gap: 22px;
-    flex-wrap: wrap;
+    gap: 20px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .navbar-links a {
@@ -560,7 +577,7 @@ label {
     color: var(--secondary-color);
 }
 
-/* Bouton dépannage dans la navbar */
+/* Bouton dépannage pill */
 .navbar-link-depannage {
     background-color: var(--secondary-color);
     color: white !important;
@@ -574,10 +591,12 @@ label {
     color: white !important;
 }
 
+/* Section user — poussée à droite dans le collapse */
 .navbar-user {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
+    margin-left: auto;
     flex-shrink: 0;
 }
 
@@ -587,6 +606,7 @@ label {
     gap: 6px;
     color: var(--text-color);
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .btn-danger {
@@ -1054,9 +1074,25 @@ label {
 }
 
 @media (max-width: 768px) {
-    /* ── Navbar mobile ── */
+    /* ── Navbar mobile : on repasse en block ── */
+    .navbar {
+        display: block;
+        padding: 0;
+        min-height: unset;
+    }
+
+    /* top-row redevient une vraie div flex visible */
     .navbar-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding: 12px 16px;
+    }
+
+    /* navbar-controls : ThemeToggle + hamburger côte à côte */
+    .navbar-controls {
+        margin-left: 0;
+        order: unset;
     }
 
     /* Hamburger visible */
@@ -1066,13 +1102,14 @@ label {
         justify-content: center;
     }
 
-    /* Menu collapsible caché par défaut */
+    /* Menu collapsible — caché par défaut */
     .navbar-collapse {
         display: none;
         flex-direction: column;
         align-items: stretch;
         padding: 0 16px 12px;
         gap: 0;
+        flex: unset;
         border-top: 1px solid var(--border-color);
     }
 
@@ -1087,6 +1124,7 @@ label {
         width: 100%;
         padding: 8px 0;
         border-bottom: 1px solid var(--border-color);
+        flex-wrap: nowrap;
     }
 
     .navbar-links a {
@@ -1112,6 +1150,7 @@ label {
     .navbar-user {
         flex-direction: column;
         align-items: stretch;
+        margin-left: 0;
         padding: 10px 0 4px;
         gap: 8px;
     }

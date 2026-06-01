@@ -5,14 +5,6 @@ node_modules/
 .pnp
 .pnp.js
 
-# ===========================
-# Variables d'environnement
-# ===========================
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # ===========================
 # Builds React / CRA
