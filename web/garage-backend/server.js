@@ -10,7 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: 'http://localhost:3001',
+        origin: ['http://localhost:3001', 'http://localhost:3002'],
         credentials: true,
         methods: ['GET', 'POST']
     }
@@ -18,24 +18,9 @@ const io = socketIo(server, {
 
 app.set('io', io);
 
-// Session middleware
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        secure: false,
-        maxAge: 24 * 60 * 60 * 1000,
-        httpOnly: true
-    }
-}));
-
-// CORS : web-client + Expo / React Native (origine absente ou LAN)
-app.use(cors({
+// CORS en premier — avant session et tout autre middleware
+const corsOptions = {
     origin(origin, callback) {
-        if (!origin) {
-            return callback(null, true);
-        }
         const allowed = [
             'http://localhost:3001',
             'http://127.0.0.1:3001',
@@ -45,14 +30,34 @@ app.use(cors({
             /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
             /^exp:\/\//,
         ];
+        // Pas d'origine (requêtes serveur-à-serveur, Electron packagé, etc.)
+        if (!origin) return callback(null, true);
+        // Origine connue
         if (allowed.some((rule) => (typeof rule === 'string' ? origin === rule : rule.test(origin)))) {
             return callback(null, true);
         }
-        callback(null, true);
+        callback(new Error(`Origine CORS non autorisée : ${origin}`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+};
+
+app.use(cors(corsOptions));
+// Répondre immédiatement aux preflight OPTIONS pour toutes les routes
+app.options('*', cors(corsOptions));
+
+// Session middleware — après CORS
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+    }
 }));
 
 app.use(express.json());
@@ -115,7 +120,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Serveur démarré' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 server.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });
