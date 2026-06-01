@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faSignInAlt, faCar, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import api from '../../services/api';
+import { isElectron, isAllowedInElectron } from '../../utils/isElectron';
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -24,10 +25,18 @@ function Login() {
             });
 
             if (response.data.user) {
-                localStorage.setItem('user', JSON.stringify(response.data.user));
-                
+                const user = response.data.user;
+
+                // Restriction Electron : admin uniquement
+                if (!isAllowedInElectron(user)) {
+                    setError("L'application desktop est réservée aux administrateurs.");
+                    return;
+                }
+
+                localStorage.setItem('user', JSON.stringify(user));
+
                 // Redirection selon le rôle
-                if (response.data.user.role === 'admin' || response.data.user.role === 'technicien') {
+                if (user.role === 'admin' || user.role === 'technicien') {
                     navigate('/admin');
                 } else {
                     navigate('/dashboard');

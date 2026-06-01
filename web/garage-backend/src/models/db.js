@@ -1,5 +1,7 @@
 const mysql = require('mysql2');
-require('dotenv').config();
+const path = require('path');
+// Chemin absolu vers .env peu importe d'où le process est lancé
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,

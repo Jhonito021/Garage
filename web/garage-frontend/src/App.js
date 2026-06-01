@@ -3,6 +3,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { isElectron, isAllowedInElectron } from './utils/isElectron';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
@@ -50,7 +51,43 @@ import DepanneurRoute from './components/DepanneurRoute';
 
 import Acceuil from './pages/Home';
 
+// Écran de blocage Electron pour les non-admins
+function ElectronBlocked() {
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        localStorage.removeItem('depanneur');
+        window.location.reload();
+    };
+
+    return (
+        <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', minHeight: '100vh', gap: '20px',
+            background: 'var(--bg-color)', color: 'var(--text-color)',
+            textAlign: 'center', padding: '40px'
+        }}>
+            <span style={{ fontSize: '4rem' }}>🔒</span>
+            <h2 style={{ color: 'var(--secondary-color)' }}>Accès réservé</h2>
+            <p style={{ maxWidth: '400px', color: 'var(--text-light)' }}>
+                L'application desktop Garage Pro est réservée aux <strong>administrateurs</strong>.
+                <br />Connectez-vous avec un compte admin pour continuer.
+            </p>
+            <button onClick={handleLogout} style={{ marginTop: '10px' }}>
+                Changer de compte
+            </button>
+        </div>
+    );
+}
+
 function App() {
+    // Garde Electron : si session existante non-admin, bloquer immédiatement
+    if (isElectron()) {
+        const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        if (storedUser && !isAllowedInElectron(storedUser)) {
+            return <ElectronBlocked />;
+        }
+    }
+
     return (
         <ThemeProvider>
             <Router>
